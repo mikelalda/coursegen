@@ -19,7 +19,7 @@
  *
  * @package    local_coursegen
  * @category   string
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -69,15 +69,15 @@ $string['coursegen:managesysteminstructions'] = 'Gérer les instructions systèm
 $string['coursegen:view_syllabus'] = 'Afficher le programme';
 $string['createwithai'] = 'Créer avec l\'IA';
 $string['creating_course'] = 'Création du cours...';
-$string['custom_fields_header'] = 'DataCurso';
+$string['custom_fields_header'] = 'birtai';
 $string['custom_prompt_field'] = 'Invite pour l\'IA';
 $string['custom_prompt_field_help'] = 'Rédigez une invite détaillée que l\'IA utilisera comme contexte principal pour concevoir le cours (objectifs, profil des étudiant·e·s, contenus, niveau, contraintes, etc.).';
 $string['custom_system_instruction_select_field'] = 'Instruction système à appliquer';
 $string['custom_system_instruction_select_field_help'] = 'Choisissez quelle instruction système sera appliquée avec le contexte sélectionné. Chaque instruction système contient des règles et des lignes directrices prédéfinies (ton, structure, contraintes, etc.) que l\'IA respectera toujours lors de la génération du contenu du cours.';
-$string['datacurso_service_url'] = 'URL du service DataCurso';
-$string['datacurso_service_url_desc'] = 'URL par défaut du service IA DataCurso (région standard).';
-$string['datacurso_service_url_eu'] = 'URL du service DataCurso (UE)';
-$string['datacurso_service_url_eu_desc'] = 'URL par défaut du service IA DataCurso hébergé dans la région UE (conforme au RGPD).';
+$string['birtai_service_url'] = 'URL du service birtai';
+$string['birtai_service_url_desc'] = 'URL par défaut du service IA birtai (région standard).';
+$string['birtai_service_url_eu'] = 'URL du service birtai (UE)';
+$string['birtai_service_url_eu_desc'] = 'URL par défaut du service IA birtai hébergé dans la région UE (conforme au RGPD).';
 $string['delete'] = 'Supprimer';
 $string['deletesysteminstruction'] = 'Supprimer l\'instruction système';
 $string['edit'] = 'Modifier';
@@ -143,7 +143,7 @@ $string['privacy:metadata:local_coursegen_course_context:system_instruction_id']
 $string['privacy:metadata:local_coursegen_course_context:timecreated'] = 'La date à laquelle l\'enregistrement de contexte du cours a été créé.';
 $string['privacy:metadata:local_coursegen_course_context:timemodified'] = 'La date à laquelle l\'enregistrement de contexte du cours a été mis à jour pour la dernière fois.';
 $string['privacy:metadata:local_coursegen_course_context:usermodified'] = 'L\'identifiant de l\'utilisateur qui a modifié pour la dernière fois le contexte du cours.';
-$string['privacy:metadata:local_coursegen_course_data'] = 'Données de cours personnalisées stockées pour l\'intégration avec DataCurso.';
+$string['privacy:metadata:local_coursegen_course_data'] = 'Données de cours personnalisées stockées pour l\'intégration avec birtai.';
 $string['privacy:metadata:local_coursegen_course_data:courseid'] = 'L\'identifiant du cours auquel ces données appartiennent.';
 $string['privacy:metadata:local_coursegen_course_data:custom_checkbox'] = 'Une valeur de case à cocher personnalisée associée au cours.';
 $string['privacy:metadata:local_coursegen_course_data:custom_date'] = 'Une valeur de date personnalisée associée au cours.';

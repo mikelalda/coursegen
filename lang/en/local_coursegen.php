@@ -19,7 +19,7 @@
  *
  * @package     local_coursegen
  * @category    string
- * @copyright   2025 Josue Condori <https://datacurso.com>
+ * @copyright   2025 Josue Condori <https://birtai.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -44,6 +44,7 @@ $string['adjust_course_planning'] = 'Adjust course planning';
 $string['adjust_planning_title'] = 'Adjust course planning';
 $string['ai_response_language'] = 'AI response language';
 $string['ai_response_language_help'] = 'Select the language in which the AI will respond and generate the course content.';
+$string['basesysteminstructionname'] = 'FP Euskadi Designer';
 $string['click_to_view_details'] = 'Click to view details';
 $string['confirmdeletesysteminstruction'] = 'Are you sure you want to delete this system instruction?';
 $string['context_type_customprompt'] = 'Custom prompt';
@@ -69,15 +70,15 @@ $string['coursegen:managesysteminstructions'] = 'Manage system instructions';
 $string['coursegen:view_syllabus'] = 'View syllabus';
 $string['createwithai'] = 'Create with AI';
 $string['creating_course'] = 'Creating Course...';
-$string['custom_fields_header'] = 'DataCurso';
+$string['custom_fields_header'] = 'birtai';
 $string['custom_prompt_field'] = 'Prompt for AI';
 $string['custom_prompt_field_help'] = 'Write a detailed prompt that the AI will use as the main context to design the course (objectives, student profile, content, level, constraints, etc.).';
 $string['custom_system_instruction_select_field'] = 'System instruction to apply';
 $string['custom_system_instruction_select_field_help'] = 'Choose which system instruction will be applied together with the selected context. Each system instruction contains predefined rules and guidelines (tone, structure, constraints, etc.) that the AI will always respect when generating course content.';
-$string['datacurso_service_url'] = 'DataCurso service URL';
-$string['datacurso_service_url_desc'] = 'Default URL for the DataCurso AI service (standard region).';
-$string['datacurso_service_url_eu'] = 'DataCurso service URL (EU)';
-$string['datacurso_service_url_eu_desc'] = 'Default URL for the DataCurso AI service hosted in the EU region (GDPR-compliant).';
+$string['birtai_service_url'] = 'Local AI service URL';
+$string['birtai_service_url_desc'] = 'URL for the local moodle-course-generator API that uses Ollama (default: http://localhost:8001). Leave empty to use the external birtai service.';
+$string['birtai_service_url_eu'] = 'Local AI service URL (EU/fallback)';
+$string['birtai_service_url_eu_desc'] = 'Alternative URL for the local AI service. Used for EU region or as fallback (default: http://localhost:8001).';
 $string['delete'] = 'Delete';
 $string['deletesysteminstruction'] = 'Delete system instruction';
 $string['edit'] = 'Edit';
@@ -143,7 +144,7 @@ $string['privacy:metadata:local_coursegen_course_context:system_instruction_id']
 $string['privacy:metadata:local_coursegen_course_context:timecreated'] = 'The time when the course context record was created.';
 $string['privacy:metadata:local_coursegen_course_context:timemodified'] = 'The time when the course context record was last updated.';
 $string['privacy:metadata:local_coursegen_course_context:usermodified'] = 'The ID of the user who last modified the course context.';
-$string['privacy:metadata:local_coursegen_course_data'] = 'Custom course data stored for integration with DataCurso.';
+$string['privacy:metadata:local_coursegen_course_data'] = 'Custom course data stored for integration with birtai.';
 $string['privacy:metadata:local_coursegen_course_data:courseid'] = 'The ID of the course this data belongs to.';
 $string['privacy:metadata:local_coursegen_course_data:custom_checkbox'] = 'A custom checkbox value associated with the course.';
 $string['privacy:metadata:local_coursegen_course_data:custom_date'] = 'A custom date value associated with the course.';
@@ -196,3 +197,62 @@ $string['use_system_instruction_field'] = 'Use system instruction';
 $string['use_system_instruction_field_help'] = 'Enable this option when you want to complement the selected context (prompt or syllabus) with a reusable system instruction. System instructions define global rules that the AI must always follow when generating course content.';
 $string['use_system_instruction_field_label'] = 'Check to use a system instruction';
 $string['yesimages'] = 'Generate images';
+
+// Template settings.
+$string['templatesettings'] = 'Template settings';
+$string['templatesettings_desc'] = 'Configure course templates and module availability for AI course generation.';
+$string['defaulttemplate'] = 'Default template';
+$string['defaulttemplate_desc'] = 'Select the default template to use when creating courses with AI. Users can override this choice.';
+$string['disabledmodules'] = 'Disabled modules';
+$string['disabledmodules_desc'] = 'Comma-separated list of module names to disable for AI course generation (e.g., scorm,hvp). Leave empty to allow all supported modules.';
+
+// Template names and descriptions.
+$string['template_standard'] = 'Standard Course';
+$string['template_standard_desc'] = 'Standard course with varied activities: pages, quizzes, forums, and assignments. Ideal for general training courses.';
+$string['template_scorm'] = 'SCORM-based Course';
+$string['template_scorm_desc'] = 'Course structured with SCORM packages as main content. Ideal for e-learning and compliance training.';
+$string['template_interactive'] = 'Interactive Course';
+$string['template_interactive_desc'] = 'Course with emphasis on H5P interactive content and gamified lessons. Ideal for high engagement learning.';
+$string['template_collaborative'] = 'Collaborative Course';
+$string['template_collaborative_desc'] = 'Course focused on teamwork and discussion. Ideal for social learning and peer interaction.';
+
+// Structure types.
+$string['structure_sections'] = 'Sections';
+$string['structure_topics'] = 'Topics';
+$string['structure_weeks'] = 'Weeks';
+
+// Module categories.
+$string['category_content'] = 'Content';
+$string['category_interactive'] = 'Interactive';
+$string['category_assessment'] = 'Assessment';
+$string['category_collaboration'] = 'Collaboration';
+$string['category_tools'] = 'Tools';
+
+// Activity type selector.
+$string['selectactivitytype'] = 'Activity type';
+$string['activitytype_auto'] = '🤖 Let AI decide (recommended)';
+$string['activitytype_content'] = 'Content';
+$string['activitytype_page'] = '📄 Page';
+$string['activitytype_book'] = '📚 Book';
+$string['activitytype_lesson'] = '🎓 Lesson';
+$string['activitytype_resource'] = '📎 File/Resource';
+$string['activitytype_url'] = '🔗 URL';
+$string['activitytype_label'] = '🏷️ Label';
+$string['activitytype_interactive'] = 'Interactive';
+$string['activitytype_h5p'] = '🎮 H5P Interactive Content';
+$string['activitytype_scorm'] = '📦 SCORM Package';
+$string['activitytype_assessment'] = 'Assessment';
+$string['activitytype_quiz'] = '❓ Quiz';
+$string['activitytype_assignment'] = '📝 Assignment';
+$string['activitytype_feedback'] = '📊 Feedback/Survey';
+$string['activitytype_collaboration'] = 'Collaboration';
+$string['activitytype_forum'] = '💬 Forum';
+$string['activitytype_wiki'] = '📖 Wiki';
+$string['activitytype_glossary'] = '📋 Glossary';
+
+// Template selector.
+$string['selecttemplate'] = 'Select course template';
+$string['selecttemplate_help'] = 'Choose a template that defines the types of activities and structure for your course.';
+$string['templateactivities'] = 'Available activities';
+$string['templatesections'] = 'Default sections';
+$string['templatestructure'] = 'Structure type';

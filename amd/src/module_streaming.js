@@ -17,7 +17,7 @@
  * Module Streaming Module for handling real-time module generation
  *
  * @module     local_coursegen/module_streaming
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

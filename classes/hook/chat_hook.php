@@ -16,7 +16,7 @@
 
 namespace local_coursegen\hook;
 
-use aiprovider_datacurso\httpclient\ai_course_api;
+use aiprovider_birtai\httpclient\ai_course_api;
 use core\hook\output\before_footer_html_generation;
 use local_coursegen\ai_course;
 
@@ -24,7 +24,7 @@ use local_coursegen\ai_course;
  * Hook to load the floating chat
  *
  * @package    local_coursegen
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class chat_hook {
@@ -148,8 +148,8 @@ class chat_hook {
                 return;
             }
 
-            $baseurl = get_config('local_coursegen', 'datacurso_service_url') ?: null;
-            $baseurleu = get_config('local_coursegen', 'datacurso_service_url_eu') ?: null;
+            $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
+            $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;
 
             $client = new ai_course_api(null, $baseurl, $baseurleu);
             $streamingurl = $client->get_streaming_url_for_session($session->session_id);

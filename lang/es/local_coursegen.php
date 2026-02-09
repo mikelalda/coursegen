@@ -19,7 +19,7 @@
  *
  * @package    local_coursegen
  * @category   string
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -44,6 +44,7 @@ $string['adjust_course_planning'] = 'Ajustar planificación del curso';
 $string['adjust_planning_title'] = 'Ajustar la planificación del curso';
 $string['ai_response_language'] = 'Idioma de respuesta de la IA';
 $string['ai_response_language_help'] = 'Selecciona el idioma en el que la IA responderá y generará el contenido del curso.';
+$string['basesysteminstructionname'] = 'Diseñador FP Euskadi';
 $string['click_to_view_details'] = 'Haz clic para ver los detalles';
 $string['confirmdeletesysteminstruction'] = '¿Seguro que quieres eliminar esta instrucción del sistema?';
 $string['context_type_customprompt'] = 'Prompt personalizado';
@@ -69,15 +70,15 @@ $string['coursegen:managesysteminstructions'] = 'Gestionar instrucciones del sis
 $string['coursegen:view_syllabus'] = 'Ver silabo';
 $string['createwithai'] = 'Crear con IA';
 $string['creating_course'] = 'Creando curso...';
-$string['custom_fields_header'] = 'DataCurso';
+$string['custom_fields_header'] = 'birtai';
 $string['custom_prompt_field'] = 'Prompt para la IA';
 $string['custom_prompt_field_help'] = 'Escribe un prompt detallado que la IA usará como contexto principal para diseñar el curso (objetivos, perfil de estudiantes, contenidos, nivel, restricciones, etc.).';
 $string['custom_system_instruction_select_field'] = 'Instrucción del sistema a aplicar';
 $string['custom_system_instruction_select_field_help'] = 'Elige qué instrucción del sistema se aplicará junto con el contexto seleccionado. Cada instrucción del sistema contiene reglas y directrices predefinidas (tono, estructura, restricciones, etc.) que la IA respetará siempre al generar contenido del curso.';
-$string['datacurso_service_url'] = 'URL del servicio de DataCurso';
-$string['datacurso_service_url_desc'] = 'URL por defecto del servicio de IA de DataCurso (región estándar).';
-$string['datacurso_service_url_eu'] = 'URL del servicio de DataCurso (UE)';
-$string['datacurso_service_url_eu_desc'] = 'URL por defecto del servicio de IA de DataCurso alojado en la región UE (compatible con RGPD).';
+$string['birtai_service_url'] = 'URL del servicio de IA local';
+$string['birtai_service_url_desc'] = 'URL de la API local moodle-course-generator que usa Ollama (por defecto: http://localhost:8001). Dejar vacío para usar el servicio externo de birtai.';
+$string['birtai_service_url_eu'] = 'URL del servicio de IA local (UE/alternativa)';
+$string['birtai_service_url_eu_desc'] = 'URL alternativa para el servicio de IA local. Usado para región UE o como respaldo (por defecto: http://localhost:8001).';
 $string['delete'] = 'Eliminar';
 $string['deletesysteminstruction'] = 'Eliminar instrucción del sistema';
 $string['edit'] = 'Editar';
@@ -144,7 +145,7 @@ $string['privacy:metadata:local_coursegen_course_context:system_instruction_id']
 $string['privacy:metadata:local_coursegen_course_context:timecreated'] = 'La hora en que se creó el registro de contexto del curso.';
 $string['privacy:metadata:local_coursegen_course_context:timemodified'] = 'La hora en que se actualizó por última vez el registro de contexto del curso.';
 $string['privacy:metadata:local_coursegen_course_context:usermodified'] = 'El ID del usuario que modificó por última vez el contexto del curso.';
-$string['privacy:metadata:local_coursegen_course_data'] = 'Datos de curso personalizados almacenados para la integración con DataCurso.';
+$string['privacy:metadata:local_coursegen_course_data'] = 'Datos de curso personalizados almacenados para la integración con birtai.';
 $string['privacy:metadata:local_coursegen_course_data:courseid'] = 'El ID del curso al que pertenecen estos datos.';
 $string['privacy:metadata:local_coursegen_course_data:custom_checkbox'] = 'Un valor de casilla personalizada asociado al curso.';
 $string['privacy:metadata:local_coursegen_course_data:custom_date'] = 'Un valor de fecha personalizada asociado al curso.';
@@ -196,3 +197,25 @@ $string['unauthorized'] = 'Acceso no autorizado';
 $string['use_system_instruction_field'] = 'Activar para usar una instrucción del sistema';
 $string['use_system_instruction_field_help'] = 'Activa esta opción cuando quieras complementar el contexto seleccionado (prompt o silabo) con una instrucción del sistema reutilizable. Las instrucciones del sistema definen reglas globales que la IA debe seguir siempre al generar contenido del curso.';
 $string['yesimages'] = 'Generar imágenes';
+
+// Activity type selector.
+$string['selectactivitytype'] = 'Tipo de actividad';
+$string['activitytype_auto'] = '🤖 Dejar que la IA decida (recomendado)';
+$string['activitytype_content'] = 'Contenido';
+$string['activitytype_page'] = '📄 Página';
+$string['activitytype_book'] = '📚 Libro';
+$string['activitytype_lesson'] = '🎓 Lección';
+$string['activitytype_resource'] = '📎 Archivo/Recurso';
+$string['activitytype_url'] = '🔗 URL';
+$string['activitytype_label'] = '🏷️ Etiqueta';
+$string['activitytype_interactive'] = 'Interactivo';
+$string['activitytype_h5p'] = '🎮 Contenido Interactivo H5P';
+$string['activitytype_scorm'] = '📦 Paquete SCORM';
+$string['activitytype_assessment'] = 'Evaluación';
+$string['activitytype_quiz'] = '❓ Cuestionario';
+$string['activitytype_assignment'] = '📝 Tarea';
+$string['activitytype_feedback'] = '📊 Encuesta/Retroalimentación';
+$string['activitytype_collaboration'] = 'Colaboración';
+$string['activitytype_forum'] = '💬 Foro';
+$string['activitytype_wiki'] = '📖 Wiki';
+$string['activitytype_glossary'] = '📋 Glosario';

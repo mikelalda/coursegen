@@ -20,7 +20,7 @@ namespace local_coursegen\mod_parameters;
  * Class base_parameters
  *
  * @package    local_coursegen
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class base_parameters {

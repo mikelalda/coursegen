@@ -16,7 +16,7 @@
 
 namespace local_coursegen\external;
 
-use aiprovider_datacurso\httpclient\ai_course_api;
+use aiprovider_birtai\httpclient\ai_course_api;
 use context_course;
 use external_api;
 use external_function_parameters;
@@ -33,7 +33,7 @@ require_once($CFG->dirroot . '/course/modlib.php');
  * Class create_mod
  *
  * @package    local_coursegen
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class create_mod extends external_api {
@@ -94,11 +94,15 @@ class create_mod extends external_api {
                 ];
             }
 
-            $baseurl = get_config('local_coursegen', 'datacurso_service_url') ?: null;
-            $baseurleu = get_config('local_coursegen', 'datacurso_service_url_eu') ?: null;
+            $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
+            $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;
 
             $client = new ai_course_api(null, $baseurl, $baseurleu);
             $result = $client->request('GET', '/resources/create-mod/result?job_id=' . urlencode($jobid));
+
+            // Debug: log the result to see what we're receiving
+            debugging('create_mod result from API: ' . json_encode($result), DEBUG_DEVELOPER);
+            file_put_contents('/tmp/moodle_debug.log', date('Y-m-d H:i:s') . ' create_mod result: ' . json_encode($result) . "\n", FILE_APPEND);
 
             $newcm = mod_manager::create_from_ai_result($result, $course, $sectionnum, $beforemod);
 

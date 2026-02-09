@@ -16,19 +16,19 @@
 
 namespace local_coursegen;
 
-use aiprovider_datacurso\httpclient\ai_course_api;
+use aiprovider_birtai\httpclient\ai_course_api;
 
 
 /**
  * AI Course class for managing AI-generated course planning sessions.
  *
  * @package    local_coursegen
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class ai_course {
     /**
-     * Start AI course planning session by calling the /plan-course/start endpoint..
+     * Start AI course planning session by calling the /plan-course/start endpoint.
      *
      * @param int $courseid Course ID
      * @param string $contexttype Context type (model, syllabus or customprompt)
@@ -37,6 +37,9 @@ class ai_course {
      * @param string|null $promptmessage Plain text prompt summary when context type is customprompt
      * @param int $generateimages 1 indicates AI could generate images, 0 indicates AI could not generate images
      * @param string|null $lang Language code to use in the AI request
+     * @param string|null $templateid Template ID to use for course structure
+     * @param string|null $structuretype Override structure type (sections, topics, weeks)
+     * @param int|null $numsections Number of sections to generate
      */
     public static function start_course_planning(
         int $courseid,
@@ -45,7 +48,10 @@ class ai_course {
         string $coursename,
         ?string $promptmessage = null,
         int $generateimages = 0,
-        ?string $lang = null
+        ?string $lang = null,
+        ?string $templateid = null,
+        ?string $structuretype = null,
+        ?int $numsections = null
     ): void {
         global $CFG;
 
@@ -73,8 +79,11 @@ class ai_course {
             $requestdata['lang'] = $lang;
         }
 
-        $baseurl = get_config('local_coursegen', 'datacurso_service_url') ?: null;
-        $baseurleu = get_config('local_coursegen', 'datacurso_service_url_eu') ?: null;
+        // Add template and module capabilities (v2 API).
+        $requestdata = self::add_template_data($requestdata, $templateid, $structuretype, $numsections);
+
+        $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
+        $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;
 
         $client = new ai_course_api(null, $baseurl, $baseurleu);
         $result = $client->request('POST', '/course/v2/start', $requestdata);
@@ -162,5 +171,74 @@ class ai_course {
         $updatedata->timemodified = time();
 
         $DB->update_record('local_coursegen_course_sessions', $updatedata);
+    }
+
+    /**
+     * Add template and module capability data to the API request.
+     *
+     * @param array $requestdata Existing request data
+     * @param string|null $templateid Template ID to use
+     * @param string|null $structuretype Override structure type
+     * @param int|null $numsections Number of sections
+     * @return array Updated request data
+     */
+    private static function add_template_data(
+        array $requestdata,
+        ?string $templateid = null,
+        ?string $structuretype = null,
+        ?int $numsections = null
+    ): array {
+        // Determine template to use.
+        if (empty($templateid)) {
+            $templateid = template_manager::get_default_template_id();
+        }
+
+        // Validate template exists.
+        if (!template_manager::is_valid_template($templateid)) {
+            $templateid = template_manager::get_default_template_id();
+        }
+
+        // Add template data.
+        $templatedata = template_manager::get_api_data($templateid);
+        $requestdata['template_id'] = $templatedata['template_id'];
+
+        // Structure type override.
+        if (!empty($structuretype)) {
+            $requestdata['structure_type'] = $structuretype;
+        } else {
+            $requestdata['structure_type'] = $templatedata['structure_type'];
+        }
+
+        // Number of sections override.
+        if (!empty($numsections) && $numsections > 0) {
+            $requestdata['num_sections'] = $numsections;
+        }
+
+        // Add module capabilities.
+        $moduledata = module_registry::get_api_data();
+        $requestdata['available_moodle_modules'] = $moduledata['available_moodle_modules'];
+
+        // Filter allowed modules based on template.
+        $requestdata['allowed_module_types'] = $templatedata['allowed_module_types'];
+
+        return $requestdata;
+    }
+
+    /**
+     * Get available templates for the UI.
+     *
+     * @return array Templates data for rendering
+     */
+    public static function get_available_templates(): array {
+        return template_manager::get_templates_for_mustache();
+    }
+
+    /**
+     * Get available modules for the UI.
+     *
+     * @return array Modules configuration
+     */
+    public static function get_available_modules(): array {
+        return module_registry::get_modules_config();
     }
 }

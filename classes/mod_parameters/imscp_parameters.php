@@ -24,7 +24,7 @@ require_once($CFG->libdir . '/filelib.php');
  * Class imscp_parameters
  *
  * @package    local_coursegen
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class imscp_parameters extends base_parameters {

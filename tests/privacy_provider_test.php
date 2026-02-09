@@ -30,7 +30,7 @@ use stdClass;
  *
  * @package    local_coursegen
  * @category   test
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class privacy_provider_test extends provider_testcase {

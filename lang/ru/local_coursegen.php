@@ -19,7 +19,7 @@
  *
  * @package    local_coursegen
  * @category   string
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -69,15 +69,15 @@ $string['coursegen:managesysteminstructions'] = 'Управление систе
 $string['coursegen:view_syllabus'] = 'Просмотреть силлабус';
 $string['createwithai'] = 'Создать с помощью ИИ';
 $string['creating_course'] = 'Создание курса...';
-$string['custom_fields_header'] = 'DataCurso';
+$string['custom_fields_header'] = 'birtai';
 $string['custom_prompt_field'] = 'Запрос для ИИ';
 $string['custom_prompt_field_help'] = 'Сформулируйте подробный запрос, который ИИ будет использовать как основной контекст для проектирования курса (цели обучения, профиль студентов, содержимое, уровень, ограничения и т. д.).';
 $string['custom_system_instruction_select_field'] = 'Системная инструкция для применения';
 $string['custom_system_instruction_select_field_help'] = 'Выберите, какая системная инструкция будет применена вместе с выбранным контекстом. Каждая системная инструкция содержит предопределённые правила и рекомендации (тон, структура, ограничения и т. д.), которых ИИ всегда будет придерживаться при создании содержимого курса.';
-$string['datacurso_service_url'] = 'URL сервиса DataCurso';
-$string['datacurso_service_url_desc'] = 'URL по умолчанию для AI‑сервиса DataCurso (стандартный регион).';
-$string['datacurso_service_url_eu'] = 'URL сервиса DataCurso (ЕС)';
-$string['datacurso_service_url_eu_desc'] = 'URL по умолчанию для AI‑сервиса DataCurso, размещённого в регионе ЕС (соответствует GDPR).';
+$string['birtai_service_url'] = 'URL сервиса birtai';
+$string['birtai_service_url_desc'] = 'URL по умолчанию для AI‑сервиса birtai (стандартный регион).';
+$string['birtai_service_url_eu'] = 'URL сервиса birtai (ЕС)';
+$string['birtai_service_url_eu_desc'] = 'URL по умолчанию для AI‑сервиса birtai, размещённого в регионе ЕС (соответствует GDPR).';
 $string['delete'] = 'Удалить';
 $string['deletesysteminstruction'] = 'Удалить системную инструкцию';
 $string['edit'] = 'Редактировать';
@@ -144,7 +144,7 @@ $string['privacy:metadata:local_coursegen_course_context:system_instruction_id']
 $string['privacy:metadata:local_coursegen_course_context:timecreated'] = 'Время создания записи контекста курса.';
 $string['privacy:metadata:local_coursegen_course_context:timemodified'] = 'Время последнего обновления записи контекста курса.';
 $string['privacy:metadata:local_coursegen_course_context:usermodified'] = 'ID пользователя, который последним изменил контекст курса.';
-$string['privacy:metadata:local_coursegen_course_data'] = 'Пользовательские данные курса, сохранённые для интеграции с DataCurso.';
+$string['privacy:metadata:local_coursegen_course_data'] = 'Пользовательские данные курса, сохранённые для интеграции с birtai.';
 $string['privacy:metadata:local_coursegen_course_data:courseid'] = 'ID курса, которому принадлежат эти данные.';
 $string['privacy:metadata:local_coursegen_course_data:custom_checkbox'] = 'Значение пользовательского флажка, связанного с курсом.';
 $string['privacy:metadata:local_coursegen_course_data:custom_date'] = 'Значение пользовательской даты, связанной с курсом.';

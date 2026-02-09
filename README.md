@@ -1,20 +1,20 @@
 # Course Creator AI
 
-The **Datacurso Course Creator AI** plugin empowers Moodle teachers to **generate complete courses automatically using artificial intelligence**.  
+The **birtai Course Creator AI** plugin empowers Moodle teachers to **generate complete courses automatically using artificial intelligence**.  
 It offers two flexible creation modes — via a **syllabus** or through an **instructional design model** — allowing teachers to build structured, pedagogically sound courses in minutes.
 
 This plugin also enables the **independent creation of activities** within any existing course, giving educators the ability to enhance their classes with AI-generated learning activities at any time.
 
-This plugin is part of the suite of **Datacurso AI Plugin Suite**.
+This plugin is part of the suite of **birtai AI Plugin Suite**.
 
-## The Datacurso AI Plugin Suite
+## The birtai AI Plugin Suite
 
-Transform Moodle into a **smarter, faster, and more engaging learning platform** with the **Datacurso AI Plugin Suite** — a collection of next-generation tools that bring artificial intelligence directly into your LMS.  
-All plugins in this suite are powered by the **Datacurso AI Provider**.
+Transform Moodle into a **smarter, faster, and more engaging learning platform** with the **birtai AI Plugin Suite** — a collection of next-generation tools that bring artificial intelligence directly into your LMS.  
+All plugins in this suite are powered by the **birtai AI Provider**.
 
 ### Explore the Suite
 
-- **[Ranking Activities AI](https://moodle.org/plugins/local_datacurso_ratings)**
+- **[Ranking Activities AI](https://moodle.org/plugins/local_birtai_ratings)**
   Empower students to rate course activities while AI analyzes feedback and provides deep insights to educators.
 
 - **[Forum AI](https://moodle.org/plugins/local_forum_ai)**  
@@ -40,11 +40,11 @@ All plugins in this suite are powered by the **Datacurso AI Provider**.
 ## Pre-requisites
 
 1. Moodle 4.5
-2. Install the Moodle AI provider **DataCurso AI Provider**. Download it for free from [https://moodle.org/plugins/aiprovider_datacurso/versions](https://moodle.org/plugins/aiprovider_datacurso/versions).
-3. In the DataCurso AI Provider settings, configure a valid license key as documented at [https://docs.datacurso.com/index.php?title=Datacurso_AI_Provider#Getting_license_keys](https://docs.datacurso.com/index.php?title=Datacurso_AI_Provider#Getting_license_keys).
+2. Install the Moodle AI provider **birtai AI Provider**. Download it for free from [https://moodle.org/plugins/aiprovider_birtai/versions](https://moodle.org/plugins/aiprovider_birtai/versions).
+3. In the birtai AI Provider settings, configure a valid license key as documented at [https://docs.birtai.com/index.php?title=birtai_AI_Provider#Getting_license_keys](https://docs.birtai.com/index.php?title=birtai_AI_Provider#Getting_license_keys).
 
 ### IMPORTANT
-This plugin will not function unless the **DataCurso AI Provider** plugin is installed and licensed.
+This plugin will not function unless the **birtai AI Provider** plugin is installed and licensed.
 
 ## Installing via uploaded ZIP file
 
@@ -96,9 +96,9 @@ To manage system instructions:
   ![Edit or delete system instructions](./_docs/images/local_coursegen_edit_or_delete_system_instructions.png)
 
 
-## Create a Course with Datacurso AI
+## Create a Course with birtai AI
 
-Follow these steps to create a new course using the Datacurso AI workflow:
+Follow these steps to create a new course using the birtai AI workflow:
 
 ### Open the course creation page
 - **Path A**: `Site administration > Courses > Manage courses and categories` and click the **Create new course** button.
@@ -114,9 +114,9 @@ Follow these steps to create a new course using the Datacurso AI workflow:
 
   ![Fill in basic course details](./_docs/images/local_coursegen_fill_in_basic_course_details.png) 
 
-### Configure the Datacurso section
+### Configure the birtai section
 
-The `Datacurso` section lets you define the context that the AI will use to understand the course you want to create, the language in which it should respond, and whether it should generate images. It is divided into five main configuration areas:
+The `birtai` section lets you define the context that the AI will use to understand the course you want to create, the language in which it should respond, and whether it should generate images. It is divided into five main configuration areas:
 
 - **1. AI response language**
   - Use the **AI response language** selector to choose the language in which the AI will respond and generate the course content.
@@ -127,7 +127,7 @@ The `Datacurso` section lets you define the context that the AI will use to unde
 - **2. Images for the course**
   - Use the **Images for the course** selector to decide whether the AI should generate images for sections, activities and other visual elements of the course.
   - By default this is set to **Do not generate images**.
-  - **Important:** Enabling image generation may drastically increase the number of credits consumed in your Datacurso AI Provider license key, because each generated image uses additional credits.
+  - **Important:** Enabling image generation may drastically increase the number of credits consumed in your birtai AI Provider license key, because each generated image uses additional credits.
 
   ![Image generation option](./_docs/images/local_coursegen_image_generation_option.png)
 
@@ -197,11 +197,11 @@ The `Datacurso` section lets you define the context that the AI will use to unde
 ### IMPORTANT!
 - Do not close the modal window during the planning or creation process to avoid issues with course creation.
 
-## Create an Activity with Datacurso AI
+## Create an Activity with birtai AI
 
-### Check the Datacurso context
+### Check the birtai context
 
-Before using the AI activity creator, confirm that the course already has a **Datacurso context** defined.
+Before using the AI activity creator, confirm that the course already has a **birtai context** defined.
 
 If the course **already has a context** (for example, an *Instructional Model* or an *uploaded Syllabus PDF*), the AI will automatically use it to generate the activity.
 
@@ -211,7 +211,7 @@ If the course **does not have a context yet**, you can set it from the course se
 
 ![Edit settings](./_docs/images/local_coursegen_edit_settings.png)
 
-3. Go to the **Datacurso** section. The following options will be displayed:  
+3. Go to the **birtai** section. The following options will be displayed:  
 
 - **1. Context type**
   - Use the **Context Type** selector to choose how you will provide the main context for the course:
@@ -233,7 +233,7 @@ If the course **does not have a context yet**, you can set it from the course se
     
     ![Upload Syllabus](./_docs/images/local_coursegen_upload_syllabus.png)
 
-Once the Datacurso context is set at the course level, it will be automatically reused for all AI-generated activities within that course.
+Once the birtai context is set at the course level, it will be automatically reused for all AI-generated activities within that course.
 
 ### Start the activity creation
 
@@ -277,7 +277,7 @@ Once the Datacurso context is set at the course level, it will be automatically 
 
 ## License
 
-2025 Data Curso LLC <https://datacurso.com>
+2025 Data Curso LLC <https://birtai.com>
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

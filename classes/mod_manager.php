@@ -27,7 +27,7 @@ require_once($CFG->dirroot . '/course/modlib.php');
  * Class mod_manager
  *
  * @package    local_coursegen
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_manager {
@@ -72,11 +72,13 @@ class mod_manager {
      * @throws \Exception If resource_type or parameters are missing.
      */
     private static function validate_resultinfo($resultinfo) {
-        if (!isset($resultinfo['result']['resource_type'])) {
+        if (!isset($resultinfo['result']['resource_type']) || empty($resultinfo['result']['resource_type'])) {
+            debugging('validate_resultinfo failed: resource_type missing or empty. Result: ' . json_encode($resultinfo), DEBUG_DEVELOPER);
             throw new \Exception(\get_string('error_missing_resource_type', 'local_coursegen'));
         }
 
-        if (!isset($resultinfo['result']['parameters'])) {
+        if (!isset($resultinfo['result']['parameters']) || empty($resultinfo['result']['parameters'])) {
+            debugging('validate_resultinfo failed: parameters missing or empty. Result: ' . json_encode($resultinfo), DEBUG_DEVELOPER);
             throw new \Exception(\get_string('error_missing_parameters', 'local_coursegen'));
         }
     }
@@ -146,6 +148,7 @@ class mod_manager {
         $parameters->section = $sectionnum;
         $parameters->beforemod = $beforemod;
         $parameters->module = $moduleid;
+        $parameters->modulename = $modname; // Required by add_moduleinfo().
 
         $parameters = self::process_mod_parameters($modname, $parameters);
 

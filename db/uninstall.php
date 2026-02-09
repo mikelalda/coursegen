@@ -19,7 +19,7 @@
  *
  * @package     local_coursegen
  * @category    upgrade
- * @copyright   2025 Josue Condori <https://datacurso.com>
+ * @copyright   2025 Josue Condori <https://birtai.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

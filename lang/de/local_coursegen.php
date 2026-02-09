@@ -19,7 +19,7 @@
  *
  * @package    local_coursegen
  * @category   string
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -69,15 +69,15 @@ $string['coursegen:managesysteminstructions'] = 'Systemanweisungen verwalten';
 $string['coursegen:view_syllabus'] = 'Syllabus anzeigen';
 $string['createwithai'] = 'Mit KI erstellen';
 $string['creating_course'] = 'Kurs wird erstellt...';
-$string['custom_fields_header'] = 'DataCurso';
+$string['custom_fields_header'] = 'birtai';
 $string['custom_prompt_field'] = 'Eingabe für die KI';
 $string['custom_prompt_field_help'] = 'Schreiben Sie einen ausführlichen Prompt, den die KI als Hauptkontext für die Kursgestaltung verwendet (Lernziele, Zielgruppe/Teilnehmerprofil, Inhalte, Niveau, Einschränkungen usw.).';
 $string['custom_system_instruction_select_field'] = 'Anzuwendende Systemanweisung';
 $string['custom_system_instruction_select_field_help'] = 'Wählen Sie, welche Systemanweisung zusammen mit dem ausgewählten Kontext angewendet wird. Jede Systemanweisung enthält vordefinierte Regeln und Richtlinien (Ton, Struktur, Einschränkungen usw.), an die sich die KI bei der Generierung von Kursinhalten immer hält.';
-$string['datacurso_service_url'] = 'DataCurso-Service-URL';
-$string['datacurso_service_url_desc'] = 'Standard-URL für den DataCurso-AI-Service (Standardregion).';
-$string['datacurso_service_url_eu'] = 'DataCurso-Service-URL (EU)';
-$string['datacurso_service_url_eu_desc'] = 'Standard-URL für den DataCurso-AI-Service in der EU-Region (DSGVO-konform).';
+$string['birtai_service_url'] = 'birtai-Service-URL';
+$string['birtai_service_url_desc'] = 'Standard-URL für den birtai-AI-Service (Standardregion).';
+$string['birtai_service_url_eu'] = 'birtai-Service-URL (EU)';
+$string['birtai_service_url_eu_desc'] = 'Standard-URL für den birtai-AI-Service in der EU-Region (DSGVO-konform).';
 $string['delete'] = 'Löschen';
 $string['deletesysteminstruction'] = 'Systemanweisung löschen';
 $string['edit'] = 'Bearbeiten';
@@ -144,7 +144,7 @@ $string['privacy:metadata:local_coursegen_course_context:system_instruction_id']
 $string['privacy:metadata:local_coursegen_course_context:timecreated'] = 'Zeitpunkt, zu dem der Kurskontext-Datensatz erstellt wurde.';
 $string['privacy:metadata:local_coursegen_course_context:timemodified'] = 'Zeitpunkt, zu dem der Kurskontext-Datensatz zuletzt aktualisiert wurde.';
 $string['privacy:metadata:local_coursegen_course_context:usermodified'] = 'Die ID des Benutzers, der den Kurskontext zuletzt geändert hat.';
-$string['privacy:metadata:local_coursegen_course_data'] = 'Benutzerdefinierte Kursdaten, die für die Integration mit DataCurso gespeichert werden.';
+$string['privacy:metadata:local_coursegen_course_data'] = 'Benutzerdefinierte Kursdaten, die für die Integration mit birtai gespeichert werden.';
 $string['privacy:metadata:local_coursegen_course_data:courseid'] = 'Die ID des Kurses, zu dem diese Daten gehören.';
 $string['privacy:metadata:local_coursegen_course_data:custom_checkbox'] = 'Ein benutzerdefinierter Kontrollkästchenwert, der dem Kurs zugeordnet ist.';
 $string['privacy:metadata:local_coursegen_course_data:custom_date'] = 'Ein benutzerdefinierter Datumswert, der dem Kurs zugeordnet ist.';

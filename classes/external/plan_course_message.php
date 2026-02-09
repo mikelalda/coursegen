@@ -18,13 +18,13 @@
  * External API for sending messages to AI course planning sessions.
  *
  * @package    local_coursegen
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_coursegen\external;
 
-use aiprovider_datacurso\httpclient\ai_course_api;
+use aiprovider_birtai\httpclient\ai_course_api;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -106,8 +106,8 @@ class plan_course_message extends external_api {
                 $requestdata['lang'] = $lang;
             }
 
-            $baseurl = get_config('local_coursegen', 'datacurso_service_url') ?: null;
-            $baseurleu = get_config('local_coursegen', 'datacurso_service_url_eu') ?: null;
+            $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
+            $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;
 
             $client = new ai_course_api(null, $baseurl, $baseurleu);
             $result = $client->request('POST', '/course/message', $requestdata);

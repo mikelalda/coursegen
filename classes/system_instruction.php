@@ -15,17 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * System instruction class for DataCurso plugin.
+ * System instruction class for birtai plugin.
  *
  * @package    local_coursegen
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_coursegen;
 
 /**
- * System instruction class for handling DataCurso system instructions.
+ * System instruction class for handling birtai system instructions.
  */
 class system_instruction {
     /** @var int System instruction ID */

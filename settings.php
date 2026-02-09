@@ -19,7 +19,7 @@
  *
  * @package     local_coursegen
  * @category    admin
- * @copyright   2025 Josue Condori <https://datacurso.com>
+ * @copyright   2025 Josue Condori <https://birtai.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,19 +32,51 @@ if ($hassiteconfig) {
     $settings = new admin_settingpage('local_coursegen_settings', get_string('generalsettings', 'local_coursegen'));
 
     $settings->add(new admin_setting_configtext(
-        'local_coursegen/datacurso_service_url',
-        get_string('datacurso_service_url', 'local_coursegen'),
-        get_string('datacurso_service_url_desc', 'local_coursegen'),
-        '',
+        'local_coursegen/birtai_service_url',
+        get_string('birtai_service_url', 'local_coursegen'),
+        get_string('birtai_service_url_desc', 'local_coursegen'),
+        'http://localhost:8001',
         PARAM_URL
     ));
 
     $settings->add(new admin_setting_configtext(
-        'local_coursegen/datacurso_service_url_eu',
-        get_string('datacurso_service_url_eu', 'local_coursegen'),
-        get_string('datacurso_service_url_eu_desc', 'local_coursegen'),
-        '',
+        'local_coursegen/birtai_service_url_eu',
+        get_string('birtai_service_url_eu', 'local_coursegen'),
+        get_string('birtai_service_url_eu_desc', 'local_coursegen'),
+        'http://localhost:8001',
         PARAM_URL
+    ));
+
+    // Template settings heading.
+    $settings->add(new admin_setting_heading(
+        'local_coursegen/templateheading',
+        get_string('templatesettings', 'local_coursegen'),
+        get_string('templatesettings_desc', 'local_coursegen')
+    ));
+
+    // Default template selection.
+    $templates = [
+        'standard' => get_string('template_standard', 'local_coursegen'),
+        'scorm_based' => get_string('template_scorm', 'local_coursegen'),
+        'interactive' => get_string('template_interactive', 'local_coursegen'),
+        'collaborative' => get_string('template_collaborative', 'local_coursegen'),
+    ];
+
+    $settings->add(new admin_setting_configselect(
+        'local_coursegen/default_template',
+        get_string('defaulttemplate', 'local_coursegen'),
+        get_string('defaulttemplate_desc', 'local_coursegen'),
+        'standard',
+        $templates
+    ));
+
+    // Disabled modules.
+    $settings->add(new admin_setting_configtext(
+        'local_coursegen/disabled_modules',
+        get_string('disabledmodules', 'local_coursegen'),
+        get_string('disabledmodules_desc', 'local_coursegen'),
+        '',
+        PARAM_TEXT
     ));
 
     $ADMIN->add($pluginname, $settings);

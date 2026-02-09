@@ -16,13 +16,13 @@
 
 namespace local_coursegen;
 
-use aiprovider_datacurso\httpclient\ai_course_api;
+use aiprovider_birtai\httpclient\ai_course_api;
 
 /**
  * Class ai_context
  *
  * @package    local_coursegen
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class ai_context {
@@ -50,8 +50,8 @@ class ai_context {
                 'site_id' => $siteid,
             ];
 
-            $baseurl = get_config('local_coursegen', 'datacurso_service_url') ?: null;
-            $baseurleu = get_config('local_coursegen', 'datacurso_service_url_eu') ?: null;
+            $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
+            $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;
 
             $client = new ai_course_api(null, $baseurl, $baseurleu);
             $client->request('POST', '/context/upload-model-context', $postdata);
@@ -94,8 +94,8 @@ class ai_context {
             'course_id' => $courseid,
         ];
 
-        $baseurl = get_config('local_coursegen', 'datacurso_service_url') ?: null;
-        $baseurleu = get_config('local_coursegen', 'datacurso_service_url_eu') ?: null;
+        $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
+        $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;
 
         $client = new ai_course_api(null, $baseurl, $baseurleu);
         $client->upload_file('/context/upload', $filepath, $file->get_mimetype(), $file->get_filename(), $postdata);

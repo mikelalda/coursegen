@@ -18,18 +18,18 @@
  * Plugin version and other meta-data are defined here.
  *
  * @package     local_coursegen
- * @copyright   2025 Josue Condori <https://datacurso.com>
+ * @copyright   2025 Josue Condori <https://birtai.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_coursegen';
-$plugin->release = '1.3.2';
-$plugin->version = 2026012300;
+$plugin->release = '1.3.3';
+$plugin->version = 2026020900;
 $plugin->requires = 2024100700; // Moodle 4.5.
 $plugin->maturity = MATURITY_STABLE;
 $plugin->supported = [405, 501];
 $plugin->dependencies = [
-    'aiprovider_datacurso' => 2026012200,
+    'aiprovider_birtai' => 2026012200,
 ];

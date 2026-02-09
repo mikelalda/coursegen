@@ -17,7 +17,7 @@
  * TODO describe module add_activity_ai
  *
  * @module     local_coursegen/add_activity_ai
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -213,16 +213,23 @@ define([
         userMessagesSection.style.display = "block";
       }
 
-      const generateImages = document.querySelector(
+      const generateImages = footerContainer.querySelector(
         'input[name="generate_images"]:checked'
       ).value;
+
+      // Get selected activity type from footer container
+      const activityTypeSelector = footerContainer.querySelector('#activity-type-selector');
+      const activityType = activityTypeSelector ? activityTypeSelector.value : 'auto';
 
       textarea.value = "";
 
       // Disable form elements
       sendBtn.disabled = true;
       textarea.disabled = true;
-      const radioButtons = document.querySelectorAll(
+      if (activityTypeSelector) {
+        activityTypeSelector.disabled = true;
+      }
+      const radioButtons = footerContainer.querySelectorAll(
         'input[name="generate_images"]'
       );
       radioButtons.forEach((rb) => {
@@ -236,6 +243,7 @@ define([
           ...payload,
           prompt,
           generateimages: generateImages,
+          activitytype: activityType,
         });
 
         if (!response.ok) {
@@ -320,6 +328,9 @@ define([
         });
         textarea.disabled = false;
         sendBtn.disabled = false;
+        if (activityTypeSelector) {
+          activityTypeSelector.disabled = false;
+        }
         setLoading(sendBtn, false);
       }
     });

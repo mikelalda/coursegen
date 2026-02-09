@@ -19,7 +19,7 @@
  *
  * @package     local_coursegen
  * @category    upgrade
- * @copyright   2025 Josue Condori <https://datacurso.com>
+ * @copyright   2025 Josue Condori <https://birtai.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -56,7 +56,7 @@ function xmldb_local_coursegen_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-        // Datacurso savepoint reached.
+        // birtai savepoint reached.
         upgrade_plugin_savepoint(true, 2025091701, 'local', 'coursegen');
     }
 
@@ -220,6 +220,15 @@ function xmldb_local_coursegen_upgrade($oldversion) {
 
         // Coursegen savepoint reached.
         upgrade_plugin_savepoint(true, 2025121601, 'local', 'coursegen');
+    }
+
+    if ($oldversion < 2026020900) {
+        // Install base system instruction if it doesn't exist.
+        require_once(__DIR__ . '/install.php');
+        local_coursegen_install_base_system_instruction();
+
+        // Coursegen savepoint reached.
+        upgrade_plugin_savepoint(true, 2026020900, 'local', 'coursegen');
     }
 
     return true;

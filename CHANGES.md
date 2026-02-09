@@ -5,16 +5,16 @@
 **Compatibility note:** This version is compatible **from Moodle 4.5 to Moodle 5.1**.
 
 ## Added
-- **Optional admin settings for DataCurso service URLs**  
-  Added admin settings to optionally override the default DataCurso service base URLs for the **standard** service and the **EU-hosted** service.
+- **Optional admin settings for birtai service URLs**  
+  Added admin settings to optionally override the default birtai service base URLs for the **standard** service and the **EU-hosted** service.
 - **Translations for service URL settings**  
-  Added language strings for `datacurso_service_url` and `datacurso_service_url_eu` across supported locales.
+  Added language strings for `birtai_service_url` and `birtai_service_url_eu` across supported locales.
 - **CHANGES.md for version history**  
   Added a new **CHANGES.md** file to maintain a clear, versioned history of releases and changes.
 
 ## Changed
 - **AI API client respects configured service URLs when provided**  
-  Updated `ai_course_api` initialization to use the configured DataCurso service URLs when available, falling back to defaults otherwise.
+  Updated `ai_course_api` initialization to use the configured birtai service URLs when available, falling back to defaults otherwise.
 - **Version bump**  
   Internal version bumped to **2026012300** and release version bumped to **1.3.2**.
 
@@ -39,7 +39,7 @@
 - **Course context save flow extended**  
   Updated context saving to persist the selected language alongside context type, system instruction, and prompt/syllabus data.
 - **Documentation updated**  
-  Updated the README to document the new **AI response language** control in the Datacurso section.
+  Updated the README to document the new **AI response language** control in the birtai section.
 - **Version bump**  
   Internal version bumped to **2025121601** and release version bumped to **1.3.1**.
 

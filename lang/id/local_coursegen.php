@@ -19,7 +19,7 @@
  *
  * @package    local_coursegen
  * @category   string
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -69,15 +69,15 @@ $string['coursegen:managesysteminstructions'] = 'Kelola instruksi sistem';
 $string['coursegen:view_syllabus'] = 'Lihat silabus';
 $string['createwithai'] = 'Buat dengan AI';
 $string['creating_course'] = 'Membuat kursus...';
-$string['custom_fields_header'] = 'DataCurso';
+$string['custom_fields_header'] = 'birtai';
 $string['custom_prompt_field'] = 'Prompt untuk AI';
 $string['custom_prompt_field_help'] = 'Tulis prompt terperinci yang akan digunakan AI sebagai konteks utama untuk merancang kursus (tujuan pembelajaran, profil peserta, konten, tingkat, batasan, dll.).';
 $string['custom_system_instruction_select_field'] = 'Instruksi sistem yang akan diterapkan';
 $string['custom_system_instruction_select_field_help'] = 'Pilih instruksi sistem yang akan diterapkan bersama dengan konteks yang dipilih. Setiap instruksi sistem berisi aturan dan pedoman yang telah ditentukan (nada, struktur, batasan, dll.) yang akan selalu dipatuhi AI saat menghasilkan konten kursus.';
-$string['datacurso_service_url'] = 'URL layanan DataCurso';
-$string['datacurso_service_url_desc'] = 'URL default untuk layanan AI DataCurso (wilayah standar).';
-$string['datacurso_service_url_eu'] = 'URL layanan DataCurso (UE)';
-$string['datacurso_service_url_eu_desc'] = 'URL default untuk layanan AI DataCurso yang dihosting di wilayah UE (sesuai GDPR).';
+$string['birtai_service_url'] = 'URL layanan birtai';
+$string['birtai_service_url_desc'] = 'URL default untuk layanan AI birtai (wilayah standar).';
+$string['birtai_service_url_eu'] = 'URL layanan birtai (UE)';
+$string['birtai_service_url_eu_desc'] = 'URL default untuk layanan AI birtai yang dihosting di wilayah UE (sesuai GDPR).';
 $string['delete'] = 'Hapus';
 $string['deletesysteminstruction'] = 'Hapus instruksi sistem';
 $string['edit'] = 'Edit';
@@ -144,7 +144,7 @@ $string['privacy:metadata:local_coursegen_course_context:system_instruction_id']
 $string['privacy:metadata:local_coursegen_course_context:timecreated'] = 'Waktu ketika catatan konteks kursus dibuat.';
 $string['privacy:metadata:local_coursegen_course_context:timemodified'] = 'Waktu ketika catatan konteks kursus terakhir diperbarui.';
 $string['privacy:metadata:local_coursegen_course_context:usermodified'] = 'ID pengguna yang terakhir mengubah konteks kursus.';
-$string['privacy:metadata:local_coursegen_course_data'] = 'Data kursus khusus yang disimpan untuk integrasi dengan DataCurso.';
+$string['privacy:metadata:local_coursegen_course_data'] = 'Data kursus khusus yang disimpan untuk integrasi dengan birtai.';
 $string['privacy:metadata:local_coursegen_course_data:courseid'] = 'ID kursus tempat data ini berada.';
 $string['privacy:metadata:local_coursegen_course_data:custom_checkbox'] = 'Nilai kotak centang kustom yang terkait dengan kursus.';
 $string['privacy:metadata:local_coursegen_course_data:custom_date'] = 'Nilai tanggal kustom yang terkait dengan kursus.';

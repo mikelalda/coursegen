@@ -17,7 +17,7 @@
  * TODO describe module chatbot
  *
  * @module     local_coursegen/repository/chatbot
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import ajax from "core/ajax";
@@ -83,21 +83,24 @@ export async function createMod({courseid, sectionnum, beforemod, jobid}) {
  *     beforemod: number,
  *     prompt: string,
  *     generateimages: number,
+ *     activitytype: string,
  * }} payload - The payload to create module with streaming
  * - courseid: The ID of the course to create module for
  * - sectionnum: The number of the section to create module for
  * - beforemod: The ID of the module before which the new module will be created
  * - prompt: The message to create
  * - generateimages: 0 not generate images, 1 generate images
+ * - activitytype: The type of activity to create (auto, page, quiz, etc.)
  * @return {Promise<Object>} response
  */
-export async function createModStream({courseid, sectionnum, beforemod, prompt, generateimages}) {
+export async function createModStream({courseid, sectionnum, beforemod, prompt, generateimages, activitytype}) {
     const args = {
         courseid: Number(courseid),
         sectionnum: Number(sectionnum),
         beforemod: beforemod ? Number(beforemod) : null,
         prompt,
         generateimages: generateimages ? Number(generateimages) : 0,
+        activitytype: activitytype || 'auto',
     };
     return ajax.call([
         {

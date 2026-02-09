@@ -16,7 +16,7 @@
 
 namespace local_coursegen\external;
 
-use aiprovider_datacurso\httpclient\ai_course_api;
+use aiprovider_birtai\httpclient\ai_course_api;
 use context_course;
 use external_api;
 use external_function_parameters;
@@ -51,6 +51,7 @@ class create_mod_stream extends external_api {
             'prompt' => new external_value(PARAM_TEXT, 'Prompt to create module'),
             'generateimages' => new external_value(PARAM_INT, '1 to generate images, 0 to not generate images', VALUE_OPTIONAL),
             'beforemod' => new external_value(PARAM_INT, 'Before module id', VALUE_OPTIONAL),
+            'activitytype' => new external_value(PARAM_ALPHANUMEXT, 'Activity type to create (auto, page, quiz, etc.)', VALUE_OPTIONAL),
         ]);
     }
 
@@ -62,6 +63,7 @@ class create_mod_stream extends external_api {
      * @param string $prompt Prompt to create module
      * @param int $generateimages 1 indicates AI could generate images, 0 indicates AI could not generate images
      * @param int|null $beforemod Before module id where the module will be created
+     * @param string|null $activitytype Activity type to create (auto lets AI decide)
      * @return array
      */
     public static function execute(
@@ -69,7 +71,8 @@ class create_mod_stream extends external_api {
         ?int $sectionnum,
         string $prompt,
         int $generateimages = 0,
-        ?int $beforemod = null
+        ?int $beforemod = null,
+        ?string $activitytype = 'auto'
     ) {
         global $CFG, $DB;
 
@@ -80,6 +83,7 @@ class create_mod_stream extends external_api {
                 'prompt' => $prompt,
                 'generateimages' => $generateimages,
                 'beforemod' => $beforemod,
+                'activitytype' => $activitytype,
             ]);
 
             $courseid = $params['courseid'];
@@ -87,6 +91,7 @@ class create_mod_stream extends external_api {
             $prompt = $params['prompt'];
             $generateimages = $params['generateimages'] ?? 0;
             $beforemod = $params['beforemod'] ?? null;
+            $activitytype = $params['activitytype'] ?? 'auto';
 
             $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
             $context = context_course::instance($course->id);
@@ -106,10 +111,11 @@ class create_mod_stream extends external_api {
                 'generate_images' => ($generateimages == 1),
                 'context_type' => $aicontext ? $aicontext->context_type : null,
                 'system_instruction_name' => $aicontext ? $aicontext->name : null,
+                'activity_type' => $activitytype,
             ];
 
-            $baseurl = get_config('local_coursegen', 'datacurso_service_url') ?: null;
-            $baseurleu = get_config('local_coursegen', 'datacurso_service_url_eu') ?: null;
+            $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
+            $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;
 
             $client = new ai_course_api(null, $baseurl, $baseurleu);
             $result = $client->request('POST', '/resources/create-mod?stream=true', $payload);

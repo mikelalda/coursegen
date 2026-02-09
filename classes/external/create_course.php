@@ -18,13 +18,13 @@
  * External API for creating courses with AI assistance.
  *
  * @package    local_coursegen
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_coursegen\external;
 
-use aiprovider_datacurso\httpclient\ai_course_api;
+use aiprovider_birtai\httpclient\ai_course_api;
 use local_coursegen\ai_course;
 use local_coursegen\mod_manager;
 use external_api;
@@ -100,8 +100,8 @@ class create_course extends external_api {
             // Release the session so other tabs in the same session are not blocked.
             \core\session\manager::write_close();
 
-            $baseurl = get_config('local_coursegen', 'datacurso_service_url') ?: null;
-            $baseurleu = get_config('local_coursegen', 'datacurso_service_url_eu') ?: null;
+            $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
+            $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;
 
             $client = new ai_course_api(null, $baseurl, $baseurleu);
             $result = $client->request('GET', '/course/result?session_id=' . urlencode($session->session_id));

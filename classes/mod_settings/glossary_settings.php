@@ -22,7 +22,7 @@ use mod_glossary_external;
  * Class glossary_settings
  *
  * @package    local_coursegen
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class glossary_settings extends base_settings {

@@ -1,0 +1,140 @@
+{{!
+    @template local_coursegen/template_selector
+
+    Template selector component for AI course generation.
+    Displays available course templates in a card layout for selection.
+
+    Classes required for JS:
+    * template-card - Each template card wrapper
+    * template-radio - Hidden radio input for selection
+    * template-selector-container - Main container
+
+    Data attributes:
+    * data-template-id - Template identifier
+
+    Context variables required for this template:
+    * templates - Array of template objects
+        * template_id - Unique identifier
+        * name - Display name
+        * description - Description text
+        * structure_type - Structure type (sections/topics/weeks)
+        * default_sections - Number of default sections
+        * icon - Moodle icon identifier
+        * is_selected - Boolean if selected
+        * activity_count - Number of available activities
+
+    Example context (json):
+    {
+        "templates": [
+            {
+                "template_id": "standard",
+                "name": "Standard Course",
+                "description": "Course with varied activities",
+                "structure_type": "sections",
+                "default_sections": 5,
+                "icon": "i/course",
+                "is_selected": true,
+                "activity_count": 6
+            }
+        ],
+        "fieldname": "template_id"
+    }
+}}
+<div class="template-selector-container mb-4">
+    <div class="form-group row">
+        <label class="col-md-3 col-form-label">
+            {{#str}}selecttemplate, local_coursegen{{/str}}
+            {{#helpicon}}
+                <a class="btn btn-link p-0" data-toggle="popover" data-content="{{#str}}selecttemplate_help, local_coursegen{{/str}}" data-html="true" data-trigger="focus" tabindex="0">
+                    {{#pix}}help, core{{/pix}}
+                </a>
+            {{/helpicon}}
+        </label>
+        <div class="col-md-9">
+            <div class="template-cards-wrapper">
+                <div class="row">
+                    {{#templates}}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card template-card h-100 {{#is_selected}}border-primary selected{{/is_selected}}" 
+                             data-template-id="{{template_id}}"
+                             role="button"
+                             tabindex="0">
+                            <input type="radio" 
+                                   name="{{fieldname}}" 
+                                   value="{{template_id}}" 
+                                   class="template-radio d-none"
+                                   id="template-{{template_id}}"
+                                   {{#is_selected}}checked{{/is_selected}}>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="template-icon mr-2">
+                                        {{#pix}}{{icon}}, core{{/pix}}
+                                    </div>
+                                    <h5 class="card-title mb-0">{{name}}</h5>
+                                </div>
+                                <p class="card-text text-muted small">{{description}}</p>
+                                <div class="template-meta mt-2">
+                                    <span class="badge badge-light mr-1">
+                                        {{#str}}templatesections, local_coursegen{{/str}}: {{default_sections}}
+                                    </span>
+                                    <span class="badge badge-light mr-1">
+                                        {{#str}}templateactivities, local_coursegen{{/str}}: {{activity_count}}
+                                    </span>
+                                    <span class="badge badge-secondary">
+                                        {{structure_type}}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 pt-0">
+                                <div class="selection-indicator text-center">
+                                    {{#is_selected}}
+                                        <span class="text-primary">
+                                            {{#pix}}i/checked, core{{/pix}}
+                                            <span class="sr-only">{{#str}}selected{{/str}}</span>
+                                        </span>
+                                    {{/is_selected}}
+                                    {{^is_selected}}
+                                        <span class="text-muted">
+                                            {{#pix}}i/unchecked, core{{/pix}}
+                                        </span>
+                                    {{/is_selected}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{/templates}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{#js}}
+require(['jquery'], function($) {
+    // Handle card click to select template
+    $('.template-card').on('click', function(e) {
+        var $card = $(this);
+        var templateId = $card.data('template-id');
+        
+        // Unselect all cards
+        $('.template-card').removeClass('border-primary selected');
+        $('.template-card .selection-indicator').html('<span class="text-muted">{{#pix}}i/unchecked, core{{/pix}}</span>');
+        
+        // Select clicked card
+        $card.addClass('border-primary selected');
+        $card.find('.template-radio').prop('checked', true);
+        $card.find('.selection-indicator').html('<span class="text-primary">{{#pix}}i/checked, core{{/pix}}<span class="sr-only">{{#str}}selected{{/str}}</span></span>');
+        
+        // Trigger change event
+        $card.find('.template-radio').trigger('change');
+    });
+    
+    // Keyboard accessibility
+    $('.template-card').on('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            $(this).click();
+        }
+    });
+});
+{{/js}}

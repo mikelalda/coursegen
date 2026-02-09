@@ -20,7 +20,7 @@ namespace local_coursegen;
  * Helper class to manage AI module generation jobs (streaming) stored in local_coursegen_module_jobs.
  *
  * @package    local_coursegen
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class module_jobs {

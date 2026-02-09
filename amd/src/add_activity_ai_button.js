@@ -20,7 +20,7 @@ import {openChatModal} from 'local_coursegen/add_activity_ai';
  *
  * @param {number} courseid - The course ID to add activity AI button for
  * @module     local_coursegen/add_activity_ai_button
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 let IS_MOODLE_45 = false;

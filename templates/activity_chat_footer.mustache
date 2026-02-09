@@ -32,7 +32,39 @@
     <div id="activity-chat-interface" class="py-3 w-100">
     <form class="local_coursegen_ai_input" novalidate>
         
-        <!-- Radios arriba -->
+        <!-- Selector de tipo de actividad -->
+        <div class="mb-3">
+            <label class="form-label small text-muted mb-1">
+                {{#str}} selectactivitytype, local_coursegen {{/str}}
+            </label>
+            <select name="activity_type" class="form-control form-control-sm" id="activity-type-selector">
+                <option value="auto" selected>{{#str}} activitytype_auto, local_coursegen {{/str}}</option>
+                <optgroup label="{{#str}} activitytype_content, local_coursegen {{/str}}">
+                    <option value="page">{{#str}} activitytype_page, local_coursegen {{/str}}</option>
+                    <option value="book">{{#str}} activitytype_book, local_coursegen {{/str}}</option>
+                    <option value="lesson">{{#str}} activitytype_lesson, local_coursegen {{/str}}</option>
+                    <option value="resource">{{#str}} activitytype_resource, local_coursegen {{/str}}</option>
+                    <option value="url">{{#str}} activitytype_url, local_coursegen {{/str}}</option>
+                    <option value="label">{{#str}} activitytype_label, local_coursegen {{/str}}</option>
+                </optgroup>
+                <optgroup label="{{#str}} activitytype_interactive, local_coursegen {{/str}}">
+                    <option value="h5pactivity">{{#str}} activitytype_h5p, local_coursegen {{/str}}</option>
+                    <option value="scorm">{{#str}} activitytype_scorm, local_coursegen {{/str}}</option>
+                </optgroup>
+                <optgroup label="{{#str}} activitytype_assessment, local_coursegen {{/str}}">
+                    <option value="quiz">{{#str}} activitytype_quiz, local_coursegen {{/str}}</option>
+                    <option value="assign">{{#str}} activitytype_assignment, local_coursegen {{/str}}</option>
+                    <option value="feedback">{{#str}} activitytype_feedback, local_coursegen {{/str}}</option>
+                </optgroup>
+                <optgroup label="{{#str}} activitytype_collaboration, local_coursegen {{/str}}">
+                    <option value="forum">{{#str}} activitytype_forum, local_coursegen {{/str}}</option>
+                    <option value="wiki">{{#str}} activitytype_wiki, local_coursegen {{/str}}</option>
+                    <option value="glossary">{{#str}} activitytype_glossary, local_coursegen {{/str}}</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <!-- Radios de imágenes -->
         <div style="gap: .8rem;" class="mb-2 d-flex align-items-center">
             <label style="gap: .3rem;" class="mb-0 d-flex align-items-center">
                 <input type="radio" name="generate_images" value="0" checked>
@@ -44,7 +76,7 @@
             </label>
         </div>
 
-        <!-- Input de texto y botón igual que antes -->
+        <!-- Input de texto y botón -->
         <label class="sr-only" for="bdaiPrompt">{{#str}} addactivityai_label, local_coursegen {{/str}}</label>
         <div class="local_coursegen_ai_input_group">
             <textarea id="bdaiPrompt" class="form-control local_coursegen_ai_textarea" rows="2"
@@ -58,11 +90,11 @@
         </div>
     </form>
     </div>
-    <div class="w-100 text-center mt-2" aria-label="Powered by Data Curso LLC">
+    <div class="w-100 text-center mt-2" aria-label="Powered by BirtAI">
         <small class="text-muted">
             Powered by
-            <a href="https://datacurso.com/" target="_blank" rel="noopener">
-                Data Curso LLC
+            <a href="https://birtai.com/" target="_blank" rel="noopener">
+                BirtAI
             </a>
         </small>
     </div>

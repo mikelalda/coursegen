@@ -15,13 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Capability definitions for DataCurso
+ * Capability definitions for birtai
  *
  * Documentation: {@link https://moodledev.io/docs/apis/subsystems/access}
  *
  * @package    local_coursegen
  * @category   access
- * @copyright  2025 Wilber Narvaez <https://datacurso.com>
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
