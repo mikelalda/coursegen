@@ -118,10 +118,11 @@ define([
   };
 
   const readDataset = (el) => {
-    const { sectionnum, beforemod } = el.dataset;
+    const { sectionnum, beforemod, courseid } = el.dataset;
     return {
       sectionnum: Number(sectionnum),
       beforemod: beforemod ? Number(beforemod) : null,
+      courseid: courseid ? Number(courseid) : null,
     };
   };
 
