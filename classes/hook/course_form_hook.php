@@ -288,7 +288,8 @@ class course_form_hook {
             // Store the context type and selected option in the database.
             ai_context::save_course_context($courseid, $contexttype, $selectedinstruction, $selectedlang, $promptmessage);
 
-            if (!empty($createaicourse)) {
+            if ($createaicourse === 1) {
+                // Standard BirtAI course planning.
                 ai_course::start_course_planning(
                     $courseid,
                     $contexttype,
@@ -298,6 +299,10 @@ class course_form_hook {
                     $generateimages,
                     $selectedlang
                 );
+            } else if ($createaicourse === 2) {
+                // FP Euskadi Designer — redirect to designer chat page.
+                // The designer modal will be opened by JS on the course view page.
+                ai_course::save_designer_flag($courseid);
             }
         } catch (\Exception $e) {
             \core\notification::error(get_string('error', 'local_coursegen', $e->getMessage()));

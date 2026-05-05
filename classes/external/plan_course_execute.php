@@ -25,6 +25,8 @@
 namespace local_coursegen\external;
 
 use aiprovider_birtai\httpclient\ai_course_api;
+use local_coursegen\module_registry;
+use local_coursegen\template_manager;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -93,22 +95,58 @@ class plan_course_execute extends external_api {
             $lang = $DB->get_field('local_coursegen_course_context', 'lang', ['courseid' => $courseid]);
 
             // Prepare the request data.
-            $requestdata = [
-                'session_id' => $session->session_id,
-            ];
-
             if (!empty($lang)) {
-                $requestdata['lang'] = $lang;
+                $lang = (string)$lang;
             }
 
             $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
             $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;
 
             $client = new ai_course_api(null, $baseurl, $baseurleu);
+
+            $sessionid = $session->session_id;
+            if ((int)$session->status === 5) {
+                $templateid = template_manager::get_default_template_id();
+                $templatedata = template_manager::get_api_data($templateid);
+                $moduledata = module_registry::get_api_data();
+                $exportpayload = [
+                    'session_id' => $sessionid,
+                    'lang' => !empty($lang) ? $lang : 'es',
+                    'course_id' => $courseid,
+                    'site_id' => md5($CFG->wwwroot),
+                    'template_id' => $templatedata['template_id'],
+                    'structure_type' => $templatedata['structure_type'],
+                    'available_moodle_modules' => $moduledata['available_moodle_modules'],
+                    'allowed_module_types' => $templatedata['allowed_module_types'],
+                ];
+
+                $exportresult = $client->request('POST', '/designer/export-course-plan', $exportpayload);
+                if (empty($exportresult['session_id'])) {
+                    return [
+                        'success' => false,
+                        'message' => 'Unable to convert designer session into a course planning session',
+                        'data' => null,
+                    ];
+                }
+
+                $sessionid = $exportresult['session_id'];
+                $session->session_id = $sessionid;
+                $session->status = 2;
+                $session->timemodified = time();
+                $DB->update_record('local_coursegen_course_sessions', $session);
+            }
+
+            $requestdata = [
+                'session_id' => $sessionid,
+            ];
+            if (!empty($lang)) {
+                $requestdata['lang'] = $lang;
+            }
+
             $result = $client->request('POST', '/course/execute', $requestdata);
 
             // Build streaming URL and return success response with API status.
-            $streamingurl = $client->get_streaming_url_for_session($session->session_id);
+            $streamingurl = $client->get_streaming_url_for_session($sessionid);
             return [
                 'success' => true,
                 'message' => $result['message'],

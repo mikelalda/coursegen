@@ -68,4 +68,20 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'moodle/course:update',
     ],
+    'local_coursegen_designer_start' => [
+        'classname' => 'local_coursegen\external\designer_start',
+        'methodname' => 'execute',
+        'description' => 'Start FP Euskadi Designer interactive chat session',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'moodle/course:update',
+    ],
+    'local_coursegen_designer_message' => [
+        'classname' => 'local_coursegen\external\designer_message',
+        'methodname' => 'execute',
+        'description' => 'Send message to FP Euskadi Designer chat session',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'moodle/course:update',
+    ],
 ];

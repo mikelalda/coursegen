@@ -116,10 +116,7 @@ class chat_hook {
     private static function check_ai_course_creation(): void {
         global $PAGE, $COURSE, $CFG, $SESSION;
 
-        // Check if we are on course/view.php page.
-        $path = $PAGE->url->get_path();
-        $iscourseviewpage = strpos($path, '/course/view.php') !== false;
-        if (!$iscourseviewpage) {
+        if (!self::is_course_context()) {
             return;
         }
 
@@ -162,6 +159,22 @@ class chat_hook {
             ]);
 
             $SESSION->local_coursegen_modal_shown[$COURSE->id] = true;
+        }
+
+        // Check if session is a designer chat pending (status 5).
+        if ($session->status == 5) {
+            $courseid = (int)$COURSE->id;
+            $PAGE->requires->js_init_code(
+                "window.localCoursegenPendingDesigner = window.localCoursegenPendingDesigner || {};"
+                . "if (!window.localCoursegenPendingDesigner[$courseid]) {"
+                . "window.localCoursegenPendingDesigner[$courseid] = true;"
+                . "window.addEventListener('load', function() {"
+                . "require(['local_coursegen/designer_chat'], function(module) {"
+                . "module.init({courseid: $courseid});"
+                . "});"
+                . "}, {once: true});"
+                . "}"
+            );
         }
     }
 
