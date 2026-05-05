@@ -36,24 +36,35 @@ export const init = () => {
 const addAIButton = async () => {
   // Find the submit form element
   const submitElement = document.querySelector(".mb-3.fitem.form-submit");
+  let targetElement = submitElement;
 
-  if (!submitElement) {
+  if (!targetElement) {
     // If not found, try alternative selectors
-    const alternativeSubmit =
+    targetElement =
       document.querySelector('div[data-fieldtype="submit"]') ||
       document.querySelector('input[name="saveandreturn"]')?.closest(".fitem");
+  }
 
-    if (alternativeSubmit) {
-      await insertAIButton(alternativeSubmit);
-    }
+  if (!targetElement) {
     return;
   }
 
-  await insertAIButton(submitElement);
+  await insertAIButton(targetElement);
+
   const button = document.querySelector(
     '[data-action="local_coursegen/add_ai_course"]'
   );
-  button.addEventListener("click", handleAIButtonClick);
+  if (button) {
+    button.addEventListener("click", handleAIButtonClick);
+  }
+
+  // Also add FP Euskadi Designer button.
+  const designerBtn = document.querySelector(
+    '[data-action="local_coursegen/designer_chat"]'
+  );
+  if (designerBtn) {
+    designerBtn.addEventListener("click", handleDesignerButtonClick);
+  }
 };
 
 /**
@@ -70,6 +81,45 @@ const handleAIButtonClick = async (e) => {
 
   document.querySelector('input[name="local_coursegen_create_ai_course"]').value = 1;
   document.querySelector('input[name="saveanddisplay"]').click();
+};
+
+/**
+ * Handle the FP Euskadi Designer button click event.
+ * Opens the designer chat modal directly without submitting the form.
+ * @param {Event} e - The click event
+ */
+const handleDesignerButtonClick = async (e) => {
+  e.preventDefault();
+  const btn = e.currentTarget;
+  if (btn) {
+    btn.setAttribute("disabled", "disabled");
+    btn.classList.add("disabled");
+  }
+
+  // First save the course form normally to get the course ID.
+  // Check if we're editing an existing course.
+  const courseIdInput = document.querySelector('input[name="id"]');
+  const courseid = courseIdInput ? parseInt(courseIdInput.value, 10) : 0;
+
+  if (!courseid) {
+    // Need to save course first via "saveanddisplay" — set hidden flag.
+    document.querySelector('input[name="local_coursegen_create_ai_course"]').value = 2;
+    document.querySelector('input[name="saveanddisplay"]').click();
+    return;
+  }
+
+  // Course exists — open the designer chat directly.
+  try {
+    const { init } = await import("local_coursegen/designer_chat");
+    await init({ courseid });
+  } catch (error) {
+    if (btn) {
+      btn.removeAttribute("disabled");
+      btn.classList.remove("disabled");
+    }
+    // eslint-disable-next-line no-console
+    console.error("Designer chat error:", error);
+  }
 };
 
 /**

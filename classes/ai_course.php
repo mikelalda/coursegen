@@ -114,7 +114,10 @@ class ai_course {
 
         try {
             // Check if a session already exists for this course.
-            $existingsession = $DB->get_record('local_coursegen_course_sessions', ['courseid' => $courseid]);
+            $existingsession = $DB->get_record('local_coursegen_course_sessions', [
+                'courseid' => $courseid,
+                'userid' => $USER->id,
+            ]);
 
             $sessiondata = new \stdClass();
             $sessiondata->courseid = $courseid;
@@ -146,10 +149,13 @@ class ai_course {
      * @return object|false Session record or false if not found
      */
     public static function get_course_session($courseid) {
-        global $DB;
+        global $DB, $USER;
 
         try {
-            return $DB->get_record('local_coursegen_course_sessions', ['courseid' => $courseid]);
+            return $DB->get_record('local_coursegen_course_sessions', [
+                'courseid' => $courseid,
+                'userid' => $USER->id,
+            ]);
         } catch (\Exception $e) {
             debugging("Error getting course session: " . $e->getMessage());
             return false;
@@ -240,5 +246,38 @@ class ai_course {
      */
     public static function get_available_modules(): array {
         return module_registry::get_modules_config();
+    }
+
+    /**
+     * Save a flag indicating the designer chat should open for this course.
+     *
+     * This stores a transient session record so that the course view page
+     * JS can detect and auto-open the designer chat modal.
+     *
+     * @param int $courseid Course ID
+     */
+    public static function save_designer_flag(int $courseid): void {
+        global $DB, $USER;
+
+        $existing = $DB->get_record('local_coursegen_course_sessions', [
+            'courseid' => $courseid,
+            'userid' => $USER->id,
+        ]);
+
+        $sessiondata = new \stdClass();
+        $sessiondata->courseid = $courseid;
+        $sessiondata->session_id = 'designer_pending';
+        $sessiondata->userid = $USER->id;
+        // Status 5 = designer chat pending.
+        $sessiondata->status = 5;
+        $sessiondata->timemodified = time();
+
+        if ($existing) {
+            $sessiondata->id = $existing->id;
+            $DB->update_record('local_coursegen_course_sessions', $sessiondata);
+        } else {
+            $sessiondata->timecreated = time();
+            $DB->insert_record('local_coursegen_course_sessions', $sessiondata);
+        }
     }
 }
