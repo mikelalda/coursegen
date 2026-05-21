@@ -21,6 +21,7 @@ use local_coursegen\utils\text_editor_parameter_cleaner;
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/course/externallib.php');
+require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/course/modlib.php');
 
 /**
@@ -59,7 +60,18 @@ class mod_manager {
 
         $modsettings = $parameters->mod_settings;
 
-        self::apply_mod_settings($modname, $newcm, $modsettings);
+        try {
+            self::apply_mod_settings($modname, $newcm, $modsettings);
+        } catch (\Throwable $e) {
+            if (!empty($newcm->coursemodule)) {
+                try {
+                    course_delete_module($newcm->coursemodule);
+                } catch (\Throwable $cleanuperror) {
+                    debugging('Rollback failed for course module ' . $newcm->coursemodule . ': ' . $cleanuperror->getMessage());
+                }
+            }
+            throw $e;
+        }
 
         return $newcm;
     }
@@ -146,6 +158,7 @@ class mod_manager {
         $cleanedparameters = text_editor_parameter_cleaner::clean_text_editor_objects($rawparameters);
         $parameters = (object)$cleanedparameters;
         $parameters = self::apply_common_parameter_defaults($modname, $parameters);
+        $parameters = self::apply_common_parameter_defaults($modname, $parameters);
         $parameters->section = $sectionnum;
         $parameters->beforemod = $beforemod;
         $parameters->module = $moduleid;
@@ -173,6 +186,11 @@ class mod_manager {
             'showdescription' => 0,
             'visible' => 1,
             'visibleoncoursepage' => 1,
+            'cmidnumber' => '',
+            'groupmode' => 0,
+            'groupingid' => 0,
+            'completion' => 0,
+            'completionexpected' => 0,
             'mod_settings' => [],
         ];
 
@@ -215,6 +233,36 @@ class mod_manager {
                 if (!property_exists($parameters, $field) || $parameters->{$field} === null) {
                     $parameters->{$field} = $value;
                 }
+            }
+        }
+
+        if ($modname === 'forum') {
+            $forumdefaults = [
+                'grade_forum' => 0,
+                'scale' => 0,
+                'assessed' => 0,
+            ];
+
+            foreach ($forumdefaults as $field => $value) {
+                if (!property_exists($parameters, $field) || $parameters->{$field} === null) {
+                    $parameters->{$field} = $value;
+                }
+            }
+        }
+
+        if ($modname === 'quiz') {
+            if (!property_exists($parameters, 'quizpassword') || $parameters->quizpassword === null) {
+                $parameters->quizpassword = '';
+            }
+        }
+
+        if ($modname === 'feedback') {
+            if (!property_exists($parameters, 'page_after_submit_editor') || empty($parameters->page_after_submit_editor)) {
+                $parameters->page_after_submit_editor = [
+                    'text' => '',
+                    'format' => 1,
+                    'itemid' => 0,
+                ];
             }
         }
 

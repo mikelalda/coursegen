@@ -132,7 +132,11 @@ export const init = async (params = {}) => {
       setupScrollDetection(modalBody);
     }
 
-    initializeChatInterface(bodyEl, params);
+    if (Number(params.sessionstatus) === 2) {
+      await resumeExecutionInterface(bodyEl, params);
+    } else {
+      await initializeChatInterface(bodyEl, params);
+    }
     setupPlanningButtons(bodyEl, params);
     setupPlanningToggle(bodyEl);
     return currentModal;
@@ -158,6 +162,60 @@ const initializeChatInterface = async (container, params) => {
 
     // Start streaming with the URL provided by PHP (already includes session)
     await startStreaming(params.streamingurl, container);
+  } catch (error) {
+    Notification.exception(error);
+  }
+};
+
+/**
+ * Reopen the modal directly in execution mode when Moodle reloads while
+ * the backend is still generating course content.
+ * @param {Element} container - The modal container element
+ * @param {Object} params - The parameters including streaming URL and course ID
+ */
+const resumeExecutionInterface = async (container, params) => {
+  try {
+    const planningPhase = container.querySelector("#planning-phase-section");
+    const planningSummary = container.querySelector(
+      "#planning-summary-collapsed"
+    );
+    const planningActions = container.querySelector("#course-planning-actions");
+    const chatInterface = container.querySelector("#course-chat-interface");
+    const executionContainer = container.querySelector(
+      "#execution-phase-container"
+    );
+
+    if (planningPhase) {
+      planningPhase.style.display = "none";
+    }
+    if (planningSummary) {
+      planningSummary.style.display = "none";
+    }
+    if (planningActions) {
+      planningActions.style.display = "none";
+    }
+    if (chatInterface) {
+      chatInterface.style.display = "none";
+    }
+    if (!executionContainer) {
+      return;
+    }
+
+    executionContainer.innerHTML = "";
+
+    const html = await Templates.render("local_coursegen/course_streaming_inline", {
+      title: await get_string("course_creating_title", "local_coursegen"),
+      subtitle: await get_string(
+        "course_creating_subtitle",
+        "local_coursegen"
+      ),
+    });
+
+    const temp = document.createElement("div");
+    temp.innerHTML = html;
+    const streamingBlock = temp.firstElementChild;
+    executionContainer.appendChild(streamingBlock);
+    await startExecutionStreaming(params.streamingurl, streamingBlock, params.courseid);
   } catch (error) {
     Notification.exception(error);
   }

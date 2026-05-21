@@ -145,6 +145,10 @@ class plan_course_execute extends external_api {
 
             $result = $client->request('POST', '/course/execute', $requestdata);
 
+            $session->status = 2;
+            $session->timemodified = time();
+            $DB->update_record('local_coursegen_course_sessions', $session);
+
             // Build streaming URL and return success response with API status.
             $streamingurl = $client->get_streaming_url_for_session($sessionid);
             return [

@@ -114,7 +114,7 @@ class chat_hook {
      * Check if course is being created with AI and open modal if needed
      */
     private static function check_ai_course_creation(): void {
-        global $PAGE, $COURSE, $CFG, $SESSION;
+        global $PAGE, $COURSE, $CFG;
 
         if (!self::is_course_context()) {
             return;
@@ -134,17 +134,6 @@ class chat_hook {
 
         // Check if session is in planning or creating status (1 or 2).
         if ($session->status == 1 || $session->status == 2) {
-            if (!isset($SESSION->local_coursegen_modal_shown)) {
-                $SESSION->local_coursegen_modal_shown = [];
-            }
-
-            $shown = $SESSION->local_coursegen_modal_shown[$COURSE->id] ?? false;
-
-            if ($shown) {
-                ai_course::update_session_status($session->id, 4);
-                return;
-            }
-
             $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
             $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;
 
@@ -155,10 +144,25 @@ class chat_hook {
                 [
                     'streamingurl' => $streamingurl,
                     'courseid' => $COURSE->id,
+                    'sessionstatus' => (int)$session->status,
                 ],
             ]);
+        }
 
-            $SESSION->local_coursegen_modal_shown[$COURSE->id] = true;
+        // Check if session is a designer chat pending (status 5).
+        if ($session->status == 5) {
+            $courseid = (int)$COURSE->id;
+            $PAGE->requires->js_init_code(
+                "window.localCoursegenPendingDesigner = window.localCoursegenPendingDesigner || {};"
+                . "if (!window.localCoursegenPendingDesigner[$courseid]) {"
+                . "window.localCoursegenPendingDesigner[$courseid] = true;"
+                . "window.addEventListener('load', function() {"
+                . "require(['local_coursegen/designer_chat'], function(module) {"
+                . "module.init({courseid: $courseid});"
+                . "});"
+                . "}, {once: true});"
+                . "}"
+            );
         }
 
         // Check if session is a designer chat pending (status 5).

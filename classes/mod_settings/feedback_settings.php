@@ -47,6 +47,7 @@ class feedback_settings extends base_settings {
      */
     protected function add_question($question) {
         global $DB;
+        $question = $this->normalize_question($question);
         $type = $question['typ'];
         $itemobj = feedback_get_item_class($type);
 
@@ -64,5 +65,55 @@ class feedback_settings extends base_settings {
 
         $itemobj->set_data((object) $question);
         return $itemobj->save_item();
+    }
+
+    /**
+     * Fill defaults expected by feedback item handlers.
+     *
+     * @param array $question Question data.
+     * @return array
+     */
+    private function normalize_question(array $question): array {
+        $defaults = [
+            'id' => 0,
+            'ignoreempty' => 0,
+            'hidenoselect' => 0,
+            'required' => 0,
+            'name' => '',
+            'label' => '',
+            'values' => '',
+            'options' => '',
+        ];
+
+        foreach ($defaults as $field => $value) {
+            if (!array_key_exists($field, $question) || $question[$field] === null) {
+                $question[$field] = $value;
+            }
+        }
+
+        if (in_array($question['typ'], ['multichoice', 'multichoicerated'], true)
+                && empty($question['options']) && !empty($question['values'])) {
+            $question['options'] = $question['values'];
+        }
+
+        if ($question['typ'] === 'textarea') {
+            if (!isset($question['itemwidth']) || $question['itemwidth'] === null) {
+                $question['itemwidth'] = 60;
+            }
+            if (!isset($question['itemheight']) || $question['itemheight'] === null) {
+                $question['itemheight'] = 5;
+            }
+        }
+
+        if ($question['typ'] === 'textfield') {
+            if (!isset($question['itemsize']) || $question['itemsize'] === null) {
+                $question['itemsize'] = 50;
+            }
+            if (!isset($question['itemmaxlength']) || $question['itemmaxlength'] === null) {
+                $question['itemmaxlength'] = 255;
+            }
+        }
+
+        return $question;
     }
 }

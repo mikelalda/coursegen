@@ -149,6 +149,27 @@ class create_course extends external_api {
                 $activityresults = self::process_generated_activities($course->id, $cleanedactivities);
             }
 
+            if ($activityresults['failed'] > 0) {
+                ai_course::update_session_status($session->id, 4);
+
+                $message = 'Se ha detenido la creación del curso tras un error en una actividad.';
+                if ($activityresults['created'] > 0) {
+                    $message .= ' ' . $activityresults['created'] . '/' . $activityresults['attempted'] . ' actividades creadas antes del fallo.';
+                }
+                if (!empty($activityresults['errors'])) {
+                    $message .= ' ' . implode(' | ', array_slice($activityresults['errors'], 0, 3));
+                }
+
+                return [
+                    'success' => false,
+                    'courseid' => $course->id,
+                    'shortname' => $course->shortname,
+                    'fullname' => $course->fullname,
+                    'message' => $message,
+                    'courseurl' => course_get_url($course->id)->out(),
+                ];
+            }
+
             if ($activityresults['attempted'] > 0 && $activityresults['created'] === 0) {
                 ai_course::update_session_status($session->id, 4);
 
@@ -186,7 +207,7 @@ class create_course extends external_api {
                 'message' => $message,
                 'courseurl' => course_get_url($course->id)->out(),
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // Update session status to failed (4) if session exists.
             if (isset($session) && $session) {
                 ai_course::update_session_status($session->id, 4);
@@ -373,6 +394,7 @@ class create_course extends external_api {
             }
 
             $modname = $activity['resource_type'] ?? 'unknown';
+            $activityname = $activity['parameters']['name'] ?? $modname;
 
             $resultinfo = [
                 'result' => $activity,
@@ -381,12 +403,11 @@ class create_course extends external_api {
             try {
                 mod_manager::create_from_ai_result($resultinfo, $course, $sectionnum);
                 $results['created']++;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $results['failed']++;
-                $results['errors'][] = $modname . ': ' . $e->getMessage();
-                debugging("Error creating module {$modname}: " . $e->getMessage());
-                // Continue with next activity.
-                continue;
+                $results['errors'][] = $modname . ' (' . $activityname . '): ' . $e->getMessage();
+                debugging("Error creating module {$modname} ({$activityname}): " . $e->getMessage());
+                break;
             }
         }
 
