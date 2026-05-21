@@ -21,6 +21,7 @@ use local_coursegen\utils\text_editor_parameter_cleaner;
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/course/externallib.php');
+require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/course/modlib.php');
 
 /**
@@ -59,7 +60,18 @@ class mod_manager {
 
         $modsettings = $parameters->mod_settings;
 
-        self::apply_mod_settings($modname, $newcm, $modsettings);
+        try {
+            self::apply_mod_settings($modname, $newcm, $modsettings);
+        } catch (\Throwable $e) {
+            if (!empty($newcm->coursemodule)) {
+                try {
+                    course_delete_module($newcm->coursemodule);
+                } catch (\Throwable $cleanuperror) {
+                    debugging('Rollback failed for course module ' . $newcm->coursemodule . ': ' . $cleanuperror->getMessage());
+                }
+            }
+            throw $e;
+        }
 
         return $newcm;
     }
@@ -145,12 +157,113 @@ class mod_manager {
     private static function prepare_parameters($modname, $rawparameters, $sectionnum, $beforemod, $moduleid) {
         $cleanedparameters = text_editor_parameter_cleaner::clean_text_editor_objects($rawparameters);
         $parameters = (object)$cleanedparameters;
+        $parameters = self::apply_common_parameter_defaults($modname, $parameters);
         $parameters->section = $sectionnum;
         $parameters->beforemod = $beforemod;
         $parameters->module = $moduleid;
         $parameters->modulename = $modname; // Required by add_moduleinfo().
 
         $parameters = self::process_mod_parameters($modname, $parameters);
+
+        return $parameters;
+    }
+
+    /**
+     * Fill the common module parameters used by the working create-mod flow.
+     *
+     * Some backend routes omit these generic fields and Moodle then tries to
+     * insert NULLs into course_modules for flags such as visible.
+     *
+     * @param string $modname Module plugin name.
+     * @param object $parameters Parameters object to normalize.
+     * @return object
+     */
+    private static function apply_common_parameter_defaults($modname, $parameters) {
+        $defaults = [
+            'intro' => '',
+            'introformat' => 1,
+            'showdescription' => 0,
+            'visible' => 1,
+            'visibleoncoursepage' => 1,
+            'cmidnumber' => '',
+            'groupmode' => 0,
+            'groupingid' => 0,
+            'completion' => 0,
+            'completionexpected' => 0,
+            'mod_settings' => [],
+        ];
+
+        foreach ($defaults as $field => $value) {
+            if (!property_exists($parameters, $field) || $parameters->{$field} === null) {
+                $parameters->{$field} = $value;
+            }
+        }
+
+        if ($modname === 'page' && (!property_exists($parameters, 'page') || empty($parameters->page))) {
+            $content = '';
+            if (property_exists($parameters, 'content') && $parameters->content !== null) {
+                $content = $parameters->content;
+            } else if (!empty($parameters->intro)) {
+                $content = $parameters->intro;
+            }
+
+            $parameters->page = [
+                'text' => $content,
+                'format' => property_exists($parameters, 'contentformat') && $parameters->contentformat !== null
+                    ? $parameters->contentformat
+                    : 1,
+            ];
+        }
+
+        if ($modname === 'assign') {
+            $assigndefaults = [
+                'submissiondrafts' => 0,
+                'requiresubmissionstatement' => 0,
+                'sendnotifications' => 0,
+                'sendlatenotifications' => 0,
+                'teamsubmission' => 0,
+                'requireallteammemberssubmit' => 0,
+                'blindmarking' => 0,
+                'markingworkflow' => 0,
+                'markingallocation' => 0,
+            ];
+
+            foreach ($assigndefaults as $field => $value) {
+                if (!property_exists($parameters, $field) || $parameters->{$field} === null) {
+                    $parameters->{$field} = $value;
+                }
+            }
+        }
+
+        if ($modname === 'forum') {
+            $forumdefaults = [
+                'grade_forum' => 0,
+                'scale' => 0,
+                'assessed' => 0,
+            ];
+
+            foreach ($forumdefaults as $field => $value) {
+                if (!property_exists($parameters, $field) || $parameters->{$field} === null) {
+                    $parameters->{$field} = $value;
+                }
+            }
+        }
+
+        if ($modname === 'quiz') {
+            if (!property_exists($parameters, 'quizpassword') || $parameters->quizpassword === null) {
+                $parameters->quizpassword = '';
+            }
+        }
+
+        if ($modname === 'feedback') {
+            if (!property_exists($parameters, 'page_after_submit_editor') || empty($parameters->page_after_submit_editor)) {
+                $parameters->page_after_submit_editor = [
+                    'text' => '',
+                    'format' => 1,
+                    'itemid' => 0,
+                ];
+            }
+        }
 
         return $parameters;
     }

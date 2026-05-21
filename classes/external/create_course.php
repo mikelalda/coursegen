@@ -108,12 +108,20 @@ class create_course extends external_api {
 
             // Check if the plan is completed.
             if (empty($result['status']) || $result['status'] !== 'completed') {
+                $statusmessage = $result['message'] ?? '';
+                if (empty($statusmessage) && !empty($result['detail'])) {
+                    $statusmessage = $result['detail'];
+                }
+                if (empty($statusmessage)) {
+                    $statusmessage = 'Course plan is not completed yet';
+                }
+
                 // Update session status to failed (4).
                 ai_course::update_session_status($session->id, 4);
 
                 return [
                     'success' => false,
-                    'message' => 'Course plan is not completed yet',
+                    'message' => $statusmessage,
                 ];
             }
 
@@ -125,17 +133,70 @@ class create_course extends external_api {
                 self::process_course_sections($course->id, $resultdata['sections_info']);
             }
 
+            $activityresults = [
+                'attempted' => 0,
+                'created' => 0,
+                'failed' => 0,
+                'errors' => [],
+            ];
+
             // Process generated activities if provided in the response.
             if (!empty($resultdata['generated_activities'])) {
                 // Clean text editor parameters before processing.
                 $cleanedactivities = text_editor_parameter_cleaner::clean_editor_parameters(
                     $resultdata['generated_activities']
                 );
-                self::process_generated_activities($course->id, $cleanedactivities);
+                $activityresults = self::process_generated_activities($course->id, $cleanedactivities);
+            }
+
+            if ($activityresults['failed'] > 0) {
+                ai_course::update_session_status($session->id, 4);
+
+                $message = 'Se ha detenido la creación del curso tras un error en una actividad.';
+                if ($activityresults['created'] > 0) {
+                    $message .= ' ' . $activityresults['created'] . '/' . $activityresults['attempted'] . ' actividades creadas antes del fallo.';
+                }
+                if (!empty($activityresults['errors'])) {
+                    $message .= ' ' . implode(' | ', array_slice($activityresults['errors'], 0, 3));
+                }
+
+                return [
+                    'success' => false,
+                    'courseid' => $course->id,
+                    'shortname' => $course->shortname,
+                    'fullname' => $course->fullname,
+                    'message' => $message,
+                    'courseurl' => course_get_url($course->id)->out(),
+                ];
+            }
+
+            if ($activityresults['attempted'] > 0 && $activityresults['created'] === 0) {
+                ai_course::update_session_status($session->id, 4);
+
+                $message = 'No se ha podido crear ninguna actividad del curso.';
+                if (!empty($activityresults['errors'])) {
+                    $message .= ' ' . implode(' | ', array_slice($activityresults['errors'], 0, 3));
+                }
+
+                return [
+                    'success' => false,
+                    'courseid' => $course->id,
+                    'shortname' => $course->shortname,
+                    'fullname' => $course->fullname,
+                    'message' => $message,
+                ];
             }
 
             // Update session status to created (3).
             ai_course::update_session_status($session->id, 3);
+
+            $message = get_string('coursecreated', 'local_coursegen');
+            if ($activityresults['failed'] > 0) {
+                $message .= ' ' . $activityresults['created'] . '/' . $activityresults['attempted'] . ' actividades creadas.';
+                if (!empty($activityresults['errors'])) {
+                    $message .= ' ' . implode(' | ', array_slice($activityresults['errors'], 0, 3));
+                }
+            }
 
             // Return success response.
             return [
@@ -143,10 +204,10 @@ class create_course extends external_api {
                 'courseid' => $course->id,
                 'shortname' => $course->shortname,
                 'fullname' => $course->fullname,
-                'message' => get_string('coursecreated', 'local_coursegen'),
+                'message' => $message,
                 'courseurl' => course_get_url($course->id)->out(),
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // Update session status to failed (4) if session exists.
             if (isset($session) && $session) {
                 ai_course::update_session_status($session->id, 4);
@@ -310,6 +371,7 @@ class create_course extends external_api {
      *
      * @param int $courseid Course ID
      * @param array $activities Generated activities from API
+     * @return array Summary of created and failed activities
      */
     private static function process_generated_activities($courseid, $activities) {
         global $CFG, $DB;
@@ -317,12 +379,22 @@ class create_course extends external_api {
         require_once($CFG->dirroot . '/course/modlib.php');
 
         $course = get_course($courseid);
+        $results = [
+            'attempted' => 0,
+            'created' => 0,
+            'failed' => 0,
+            'errors' => [],
+        ];
 
         foreach ($activities as $activity) {
+            $results['attempted']++;
             $sectionnum = 0;
             if (isset($activity['parameters']) && isset($activity['parameters']['section'])) {
                 $sectionnum = $activity['parameters']['section'];
             }
+
+            $modname = $activity['resource_type'] ?? 'unknown';
+            $activityname = $activity['parameters']['name'] ?? $modname;
 
             $resultinfo = [
                 'result' => $activity,
@@ -330,14 +402,18 @@ class create_course extends external_api {
 
             try {
                 mod_manager::create_from_ai_result($resultinfo, $course, $sectionnum);
-            } catch (\Exception $e) {
-                debugging("Error creating module {$modname}: " . $e->getMessage());
-                // Continue with next activity.
-                continue;
+                $results['created']++;
+            } catch (\Throwable $e) {
+                $results['failed']++;
+                $results['errors'][] = $modname . ' (' . $activityname . '): ' . $e->getMessage();
+                debugging("Error creating module {$modname} ({$activityname}): " . $e->getMessage());
+                break;
             }
         }
 
         // Rebuild course cache after adding all activities.
         rebuild_course_cache($courseid, true);
+
+        return $results;
     }
 }

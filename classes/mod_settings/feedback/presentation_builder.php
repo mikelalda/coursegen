@@ -136,7 +136,9 @@ class presentation_builder {
      * @return string Presentation.
      */
     private function build_textarea($item): string {
-        return $item->itemwidth . '|' . $item->itemheight;
+        $width = isset($item->itemwidth) ? (int)$item->itemwidth : 60;
+        $height = isset($item->itemheight) ? (int)$item->itemheight : 5;
+        return $width . '|' . $height;
     }
 
     /**
@@ -146,6 +148,8 @@ class presentation_builder {
      * @return string Presentation.
      */
     private function build_textfield($item): string {
-        return $item->itemsize . '|' . $item->itemmaxlength;
+        $size = isset($item->itemsize) ? (int)$item->itemsize : 50;
+        $maxlength = isset($item->itemmaxlength) ? (int)$item->itemmaxlength : 255;
+        return $size . '|' . $maxlength;
     }
 }

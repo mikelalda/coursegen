@@ -143,7 +143,7 @@ class plan_course_message extends external_api {
             'data' => new external_single_structure([
                 'status' => new external_value(PARAM_TEXT, 'API status response', VALUE_OPTIONAL),
                 'streamingurl' => new external_value(PARAM_URL, 'Streaming URL to reconnect', VALUE_OPTIONAL),
-            ], 'Api response data', VALUE_OPTIONAL),
+            ], 'Api response data', VALUE_OPTIONAL, null, NULL_ALLOWED),
         ]);
     }
 }
