@@ -28,6 +28,7 @@ import { get_string } from "core/str";
 import {
   startStreaming,
   startExecutionStreaming,
+  renderMarkdown,
 } from "local_coursegen/course_streaming";
 import {
   planCourseMessage,
@@ -132,7 +133,11 @@ export const init = async (params = {}) => {
       setupScrollDetection(modalBody);
     }
 
-    initializeChatInterface(bodyEl, params);
+    if (Number(params.sessionstatus) === 2) {
+      await resumeExecutionInterface(bodyEl, params);
+    } else {
+      await initializeChatInterface(bodyEl, params);
+    }
     setupPlanningButtons(bodyEl, params);
     setupPlanningToggle(bodyEl);
     return currentModal;
@@ -164,6 +169,60 @@ const initializeChatInterface = async (container, params) => {
 };
 
 /**
+ * Reopen the modal directly in execution mode when Moodle reloads while
+ * the backend is still generating course content.
+ * @param {Element} container - The modal container element
+ * @param {Object} params - The parameters including streaming URL and course ID
+ */
+const resumeExecutionInterface = async (container, params) => {
+  try {
+    const planningPhase = container.querySelector("#planning-phase-section");
+    const planningSummary = container.querySelector(
+      "#planning-summary-collapsed"
+    );
+    const planningActions = container.querySelector("#course-planning-actions");
+    const chatInterface = container.querySelector("#course-chat-interface");
+    const executionContainer = container.querySelector(
+      "#execution-phase-container"
+    );
+
+    if (planningPhase) {
+      planningPhase.style.display = "none";
+    }
+    if (planningSummary) {
+      planningSummary.style.display = "none";
+    }
+    if (planningActions) {
+      planningActions.style.display = "none";
+    }
+    if (chatInterface) {
+      chatInterface.style.display = "none";
+    }
+    if (!executionContainer) {
+      return;
+    }
+
+    executionContainer.innerHTML = "";
+
+    const html = await Templates.render("local_coursegen/course_streaming_inline", {
+      title: await get_string("course_creating_title", "local_coursegen"),
+      subtitle: await get_string(
+        "course_creating_subtitle",
+        "local_coursegen"
+      ),
+    });
+
+    const temp = document.createElement("div");
+    temp.innerHTML = html;
+    const streamingBlock = temp.firstElementChild;
+    executionContainer.appendChild(streamingBlock);
+    await startExecutionStreaming(params.streamingurl, streamingBlock, params.courseid);
+  } catch (error) {
+    Notification.exception(error);
+  }
+};
+
+/**
  * Add user message bubble
  * @param {Element} wrap - Messages container
  * @param {string} text - Message text
@@ -181,7 +240,11 @@ const addBubble = (wrap, text, role) => {
   row.className = `local_coursegen_ai_msg ${role}`;
   const bubble = document.createElement("div");
   bubble.className = "bubble";
-  bubble.textContent = text;
+  if (role === "user") {
+    bubble.innerHTML = renderMarkdown(text);
+  } else {
+    bubble.textContent = text;
+  }
   row.appendChild(bubble);
   wrap.appendChild(row);
   scrollToBottom(wrap);

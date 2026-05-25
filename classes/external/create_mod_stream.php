@@ -96,6 +96,8 @@ class create_mod_stream extends external_api {
             $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
             $context = context_course::instance($course->id);
             self::validate_context($context);
+            require_capability('moodle/course:update', $context);
+            require_capability('moodle/course:manageactivities', $context);
 
             $aicontext = ai_context::get_course_context_info($courseid);
 
@@ -157,8 +159,8 @@ class create_mod_stream extends external_api {
                 'message' => $result['message'] ?? get_string('course_planning_started', 'local_coursegen'),
                 'streamingurl' => $streamingurl,
             ];
-        } catch (\Exception $e) {
-            debugging("Unexpected error while starting resource generation (stream): " . $e->getMessage());
+        } catch (\Throwable $e) {
+            debugging('Unexpected error while starting resource generation (stream): ' . $e->getMessage(), DEBUG_DEVELOPER);
             return [
                 'ok' => false,
                 'message' => $e->getMessage(),

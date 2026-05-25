@@ -23,6 +23,7 @@ use external_function_parameters;
 use external_single_structure;
 use external_value;
 use local_coursegen\mod_manager;
+use local_coursegen\module_jobs;
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/externallib.php');
@@ -62,7 +63,7 @@ class create_mod extends external_api {
      * @return array
      */
     public static function execute(int $courseid, int $sectionnum, string $jobid, ?int $beforemod) {
-        global $DB;
+        global $DB, $USER;
         $params = self::validate_parameters(self::execute_parameters(), [
             'courseid' => $courseid,
             'sectionnum' => $sectionnum,
@@ -79,6 +80,8 @@ class create_mod extends external_api {
             $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
             $context = context_course::instance($course->id);
             self::validate_context($context);
+            require_capability('moodle/course:update', $context);
+            require_capability('moodle/course:manageactivities', $context);
 
             // This request may take a long time depending on the complexity of the prompt that the AI ​​has to resolve.
             \core_php_time_limit::raise();
@@ -94,15 +97,20 @@ class create_mod extends external_api {
                 ];
             }
 
+            $job = module_jobs::get_by_jobid($jobid);
+            if (!$job || (int)$job->userid !== (int)$USER->id || (int)$job->courseid !== $courseid) {
+                debugging('Rejected create_mod request for unknown or foreign job_id: ' . $jobid, DEBUG_DEVELOPER);
+                return [
+                    'ok' => false,
+                    'message' => get_string('error_generating_resource', 'local_coursegen'),
+                ];
+            }
+
             $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
             $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;
 
             $client = new ai_course_api(null, $baseurl, $baseurleu);
             $result = $client->request('GET', '/resources/create-mod/result?job_id=' . urlencode($jobid));
-
-            // Debug: log the result to see what we're receiving
-            debugging('create_mod result from API: ' . json_encode($result), DEBUG_DEVELOPER);
-            file_put_contents('/tmp/moodle_debug.log', date('Y-m-d H:i:s') . ' create_mod result: ' . json_encode($result) . "\n", FILE_APPEND);
 
             $newcm = mod_manager::create_from_ai_result($result, $course, $sectionnum, $beforemod);
 
@@ -117,8 +125,8 @@ class create_mod extends external_api {
                     'modname' => $newcm->modulename,
                 ],
             ];
-        } catch (\Exception $e) {
-            debugging("Unexpected error while creating resource: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            debugging('Unexpected error while creating resource: ' . $e->getMessage(), DEBUG_DEVELOPER);
             return [
                 'ok' => false,
                 'message' => $e->getMessage(),

@@ -29,6 +29,210 @@ let userHasScrolled = false;
 let scrollTimeout = null;
 
 /**
+ * Escape HTML entities.
+ * @param {string} text
+ * @returns {string}
+ */
+const escapeHtml = (text) => {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+};
+
+/**
+ * Detect structured HTML already prepared by the backend.
+ * @param {string} text
+ * @returns {boolean}
+ */
+const looksLikeStructuredHtml = (text) => {
+  const normalized = String(text || "").trim();
+  if (!normalized) {
+    return false;
+  }
+
+  return normalized.includes("local-coursegen-plan") || /<(section|article|div|p|ul|ol|li|h[1-6]|table|thead|tbody|tr|td|th|blockquote|pre)\b/i.test(normalized);
+};
+
+/**
+ * Render inline markdown after the source has been HTML-escaped.
+ * @param {string} text
+ * @returns {string}
+ */
+const renderInlineMarkdown = (text) => {
+  return String(text || "")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/__([^_]+)__/g, "<strong>$1</strong>")
+    .replace(/(^|[\s(])\*([^*\n]+)\*(?=[$\s).,!?:;]|$)/g, "$1<em>$2</em>")
+    .replace(/(^|[\s(])_([^_\n]+)_(?=[$\s).,!?:;]|$)/g, "$1<em>$2</em>");
+};
+
+/**
+ * Split a markdown pipe-table row into cells.
+ * @param {string} line
+ * @returns {string[]}
+ */
+const splitTableRow = (line) => {
+  return String(line || "")
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((cell) => renderInlineMarkdown(cell.trim()));
+};
+
+/**
+ * Render markdown into safe HTML for chat and streaming content.
+ * @param {string} text
+ * @returns {string}
+ */
+export const renderMarkdown = (text) => {
+  const normalized = String(text || "").replace(/\r\n?/g, "\n");
+  const escaped = escapeHtml(normalized);
+  const codeBlocks = [];
+
+  const withPlaceholders = escaped.replace(/```([a-z0-9_-]+)?\n?([\s\S]*?)```/gi, (_, language, code) => {
+    const placeholder = `@@CODEBLOCK_${codeBlocks.length}@@`;
+    const langClass = language ? ` class="language-${language.toLowerCase()}"` : "";
+    codeBlocks.push(`<pre><code${langClass}>${String(code || "").replace(/^\n+|\n+$/g, "")}</code></pre>`);
+    return placeholder;
+  });
+
+  const lines = withPlaceholders.split("\n");
+  const html = [];
+  let paragraphLines = [];
+  let listType = null;
+  let listItems = [];
+
+  const flushParagraph = () => {
+    if (!paragraphLines.length) {
+      return;
+    }
+    html.push(`<p>${renderInlineMarkdown(paragraphLines.join("<br>"))}</p>`);
+    paragraphLines = [];
+  };
+
+  const flushList = () => {
+    if (!listType || !listItems.length) {
+      listType = null;
+      listItems = [];
+      return;
+    }
+    html.push(`<${listType}>${listItems.map((item) => `<li>${renderInlineMarkdown(item)}</li>`).join("")}</${listType}>`);
+    listType = null;
+    listItems = [];
+  };
+
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+
+    if (/^@@CODEBLOCK_\d+@@$/.test(trimmed)) {
+      flushParagraph();
+      flushList();
+      html.push(trimmed);
+      continue;
+    }
+
+    const tableDivider = lines[index + 1] ? lines[index + 1].trim() : "";
+    if (trimmed.includes("|") && /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(tableDivider)) {
+      flushParagraph();
+      flushList();
+
+      const headers = splitTableRow(trimmed);
+      const rows = [];
+      index += 2;
+
+      while (index < lines.length && lines[index].trim().includes("|")) {
+        rows.push(splitTableRow(lines[index]));
+        index++;
+      }
+
+      index--;
+      html.push(
+        `<table><thead><tr>${headers.map((cell) => `<th>${cell}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")}</tbody></table>`
+      );
+      continue;
+    }
+
+    const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)$/);
+    if (headingMatch) {
+      flushParagraph();
+      flushList();
+      const level = headingMatch[1].length;
+      html.push(`<h${level}>${renderInlineMarkdown(headingMatch[2])}</h${level}>`);
+      continue;
+    }
+
+    if (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
+      flushParagraph();
+      flushList();
+      html.push("<hr>");
+      continue;
+    }
+
+    const orderedMatch = trimmed.match(/^\d+\.\s+(.*)$/);
+    if (orderedMatch) {
+      flushParagraph();
+      if (listType && listType !== "ol") {
+        flushList();
+      }
+      listType = "ol";
+      listItems.push(orderedMatch[1]);
+      continue;
+    }
+
+    const unorderedMatch = trimmed.match(/^[-*+]\s+(.*)$/);
+    if (unorderedMatch) {
+      flushParagraph();
+      if (listType && listType !== "ul") {
+        flushList();
+      }
+      listType = "ul";
+      listItems.push(unorderedMatch[1]);
+      continue;
+    }
+
+    const quoteMatch = trimmed.match(/^>\s?(.*)$/);
+    if (quoteMatch) {
+      flushParagraph();
+      flushList();
+      html.push(`<blockquote><p>${renderInlineMarkdown(quoteMatch[1])}</p></blockquote>`);
+      continue;
+    }
+
+    flushList();
+    paragraphLines.push(trimmed);
+  }
+
+  flushParagraph();
+  flushList();
+
+  let rendered = html.join("");
+  rendered = rendered.replace(/@@CODEBLOCK_(\d+)@@/g, (_, codeIndex) => codeBlocks[Number(codeIndex)] || "");
+  return `<div class="local_coursegen_markdown">${rendered}</div>`;
+};
+
+/**
+ * Render assistant content preserving backend HTML blocks and formatting markdown otherwise.
+ * @param {string} text
+ * @returns {string}
+ */
+const renderAssistantContent = (text) => {
+  if (looksLikeStructuredHtml(text)) {
+    return `<div class="local_coursegen_markdown">${String(text || "")}</div>`;
+  }
+  return renderMarkdown(text);
+};
+
+/**
  * Check if user is at the bottom of the scrollable container
  * @param {Element} element - The scrollable element
  * @returns {boolean} - True if user is at bottom
@@ -135,7 +339,7 @@ export const startStreaming = async (
     rafPending = true;
     requestAnimationFrame(() => {
       rafPending = false;
-      container.innerHTML = htmlBuffer;
+      container.innerHTML = renderAssistantContent(htmlBuffer);
       // Only auto-scroll if user hasn't manually scrolled
       if (!userHasScrolled) {
         const modalBody = document.querySelector(".modal-body");

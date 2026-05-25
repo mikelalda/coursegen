@@ -146,3 +146,35 @@ export async function planCourseExecute(courseid) {
     ])[0];
 }
 
+/**
+ * Start FP Euskadi Designer interactive chat session.
+ *
+ * @param {{courseid: number}} payload
+ * @return {Promise<Object>} response with session_id and streamingurl
+ */
+export async function designerStart({courseid}) {
+    return ajax.call([
+        {
+            methodname: "local_coursegen_designer_start",
+            args: {courseid: Number(courseid)},
+        },
+    ])[0];
+}
+
+/**
+ * Send message to the FP Euskadi Designer chat session.
+ *
+ * @param {{courseid: number, text: string}} payload
+ * @return {Promise<Object>} response with streamingurl
+ */
+export async function designerMessage({courseid, text}) {
+    return ajax.call([
+        {
+            methodname: "local_coursegen_designer_message",
+            args: {
+                courseid: Number(courseid),
+                text,
+            },
+        },
+    ])[0];
+}

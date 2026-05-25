@@ -70,7 +70,7 @@ function local_coursegen_install_base_system_instruction() {
     }
 
     // Convert Markdown to HTML for storage.
-    $content = format_text($content, FORMAT_MARKDOWN, ['trusted' => true, 'noclean' => true]);
+    $content = format_text($content, FORMAT_MARKDOWN, ['trusted' => false]);
 
     // Create the base system instruction.
     $now = time();

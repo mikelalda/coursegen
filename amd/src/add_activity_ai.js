@@ -29,6 +29,7 @@ define([
   "core/str",
   "local_coursegen/repository/chatbot",
   "local_coursegen/module_streaming",
+  "local_coursegen/course_streaming",
 ], (
   Templates,
   Notification,
@@ -36,7 +37,8 @@ define([
   CustomEvents,
   Str,
   chatbotRepository,
-  moduleStreaming
+  moduleStreaming,
+  courseStreaming
 ) => {
   const LINK_SELECTOR = '[data-action="local_coursegen/add_activity_ai"]';
 
@@ -352,7 +354,11 @@ define([
     row.className = `local_coursegen_ai_msg ${role}`;
     const b = document.createElement("div");
     b.className = "bubble";
-    b.textContent = text;
+    if (role === "user" && courseStreaming && typeof courseStreaming.renderMarkdown === "function") {
+      b.innerHTML = courseStreaming.renderMarkdown(text);
+    } else {
+      b.textContent = text;
+    }
     row.appendChild(b);
     wrap.appendChild(row);
     scrollToBottom(wrap);

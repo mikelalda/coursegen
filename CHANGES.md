@@ -1,3 +1,21 @@
+## 1.4.1
+
+**Released on:** 2026-05-25
+
+**Compatibility note:** This version is compatible **from Moodle 4.5 to Moodle 5.1**.
+
+## Fixed
+- **AI activity creation endpoints now enforce course edit capabilities directly**  
+  Hardened the module creation webservices so they explicitly require `moodle/course:update` and `moodle/course:manageactivities` in the target course context.
+- **Module creation now validates streaming job ownership before fetching results**  
+  Prevented reuse of foreign or mismatched `job_id` values by checking the saved module job against the current user and course.
+- **AI module type is now normalized and format-validated before loading module forms**  
+  Normalized `resource_type` values to lowercase and rejected unexpected formats before resolving `mod_form.php`.
+- **Base system instruction install no longer disables HTML cleaning**  
+  Removed the unsafe `noclean` install-time Markdown rendering option from the default system instruction seed.
+- **Version bump**  
+  Internal version bumped to **2026052500** and release version bumped to **1.4.1**.
+
 ## 1.3.2
 
 **Released on:** 2026-01-26
