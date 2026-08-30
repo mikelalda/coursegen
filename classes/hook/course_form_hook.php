@@ -52,8 +52,10 @@ class course_form_hook {
 
         $languages = get_string_manager()->get_list_of_languages(null, 'iso6391');
         $options = [];
-        foreach ($languages as $code => $name) {
-            $options[$code] = "$name ($code)";
+        foreach (['es', 'eu', 'en'] as $code) {
+            if (isset($languages[$code])) {
+                $options[$code] = "$languages[$code] ($code)";
+            }
         }
         $attributes = [
             'multiple' => false,
@@ -69,8 +71,12 @@ class course_form_hook {
 
         $mform->addHelpButton('local_coursegen_lang', 'ai_response_language', 'local_coursegen');
 
-        // Default to the current user language, matching available codes when possible.
-        $defaultcode = current_language();
+        // Default to the current supported base language, or Spanish otherwise.
+        $currentlanguage = str_replace('-', '_', current_language());
+        $defaultcode = explode('_', $currentlanguage, 2)[0];
+        if (!isset($options[$defaultcode])) {
+            $defaultcode = 'es';
+        }
         $mform->setDefault('local_coursegen_lang', $defaultcode);
 
         // Add option to generate images for the course.
