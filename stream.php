@@ -10,6 +10,17 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Server-Sent Events stream endpoint for AI course/activity generation.
+ *
+ * @package    local_coursegen
+ * @copyright  2025 Wilber Narvaez <https://birtai.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 define('NO_DEBUG_DISPLAY', true);
 
@@ -125,7 +136,7 @@ curl_setopt_array($ch, [
     CURLOPT_HEADER => false,
     CURLOPT_CONNECTTIMEOUT => 15,
     CURLOPT_TIMEOUT => 0,
-    CURLOPT_WRITEFUNCTION => static function($curl, $data) use (&$sentdata) {
+    CURLOPT_WRITEFUNCTION => static function ($curl, $data) use (&$sentdata) {
         $sentdata = true;
         echo $data;
         @ob_flush();
@@ -152,6 +163,7 @@ exit;
  * @param int $statuscode HTTP status code.
  * @param string $message Error message.
  * @return void
+ * @package local_coursegen
  */
 function local_coursegen_stream_fail(int $statuscode, string $message): void {
     http_response_code($statuscode);
@@ -165,6 +177,7 @@ function local_coursegen_stream_fail(int $statuscode, string $message): void {
  *
  * @param string $message Error message.
  * @return void
+ * @package local_coursegen
  */
 function local_coursegen_stream_send_error(string $message): void {
     $lines = preg_split('/\r\n|\r|\n/', $message) ?: ['Unknown streaming error'];

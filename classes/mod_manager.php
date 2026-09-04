@@ -85,18 +85,27 @@ class mod_manager {
      */
     private static function validate_resultinfo($resultinfo) {
         if (!isset($resultinfo['result']['resource_type']) || empty($resultinfo['result']['resource_type'])) {
-            debugging('validate_resultinfo failed: resource_type missing or empty. Result: ' . json_encode($resultinfo), DEBUG_DEVELOPER);
+            debugging(
+                'validate_resultinfo failed: resource_type missing or empty. Result: ' . json_encode($resultinfo),
+                DEBUG_DEVELOPER
+            );
             throw new \Exception(\get_string('error_missing_resource_type', 'local_coursegen'));
         }
 
         $modname = \core_text::strtolower(trim((string)$resultinfo['result']['resource_type']));
         if (!preg_match('/^[a-z][a-z0-9_]*$/', $modname)) {
-            debugging('validate_resultinfo failed: invalid resource_type format. Result: ' . json_encode($resultinfo), DEBUG_DEVELOPER);
+            debugging(
+                'validate_resultinfo failed: invalid resource_type format. Result: ' . json_encode($resultinfo),
+                DEBUG_DEVELOPER
+            );
             throw new \Exception(\get_string('error_invalid_resource_type', 'local_coursegen', $modname));
         }
 
         if (!isset($resultinfo['result']['parameters']) || empty($resultinfo['result']['parameters'])) {
-            debugging('validate_resultinfo failed: parameters missing or empty. Result: ' . json_encode($resultinfo), DEBUG_DEVELOPER);
+            debugging(
+                'validate_resultinfo failed: parameters missing or empty. Result: ' . json_encode($resultinfo),
+                DEBUG_DEVELOPER
+            );
             throw new \Exception(\get_string('error_missing_parameters', 'local_coursegen'));
         }
     }

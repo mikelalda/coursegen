@@ -154,7 +154,8 @@ class create_course extends external_api {
 
                 $message = 'Se ha detenido la creación del curso tras un error en una actividad.';
                 if ($activityresults['created'] > 0) {
-                    $message .= ' ' . $activityresults['created'] . '/' . $activityresults['attempted'] . ' actividades creadas antes del fallo.';
+                    $message .= ' ' . $activityresults['created'] . '/' . $activityresults['attempted']
+                        . ' actividades creadas antes del fallo.';
                 }
                 if (!empty($activityresults['errors'])) {
                     $message .= ' ' . implode(' | ', array_slice($activityresults['errors'], 0, 3));

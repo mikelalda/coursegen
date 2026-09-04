@@ -18,6 +18,7 @@ namespace local_coursegen\hook;
 
 use aiprovider_birtai\httpclient\ai_course_api;
 use core\hook\output\before_footer_html_generation;
+use local_coursegen\ai_context;
 use local_coursegen\ai_course;
 
 /**
@@ -95,6 +96,9 @@ class chat_hook {
             $PAGE->requires->js_call_amd('local_coursegen/add_activity_ai_button', 'init', [
                 $COURSE->id,
                 self::is_moodle_45(),
+                // The modal preselects the language the course was planned in, so
+                // adding an activity does not silently switch it to Spanish.
+                ai_context::resolve_language($COURSE->id),
             ]);
         }
     }

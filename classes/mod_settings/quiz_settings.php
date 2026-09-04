@@ -159,8 +159,12 @@ class quiz_settings extends base_settings {
     private function normalize_truefalse_question(array $question): array {
         $correctanswer = !empty($question['correctanswer']) ? 1 : 0;
         $question['correctanswer'] = $correctanswer;
-        $question['feedbacktrue'] = $this->normalize_editor_value($question['feedbacktrue'] ?? ($correctanswer ? $question['generalfeedback']['text'] : ''));
-        $question['feedbackfalse'] = $this->normalize_editor_value($question['feedbackfalse'] ?? (!$correctanswer ? $question['generalfeedback']['text'] : ''));
+        $question['feedbacktrue'] = $this->normalize_editor_value(
+            $question['feedbacktrue'] ?? ($correctanswer ? $question['generalfeedback']['text'] : '')
+        );
+        $question['feedbackfalse'] = $this->normalize_editor_value(
+            $question['feedbackfalse'] ?? (!$correctanswer ? $question['generalfeedback']['text'] : '')
+        );
 
         return $question;
     }

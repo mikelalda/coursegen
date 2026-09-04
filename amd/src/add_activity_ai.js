@@ -42,6 +42,31 @@ define([
 ) => {
   const LINK_SELECTOR = '[data-action="local_coursegen/add_activity_ai"]';
 
+  // Los tres idiomas para los que el servicio de IA tiene prompts nativos.
+  // Se listan con su propio endonimo: un selector de idioma se lee mejor en el
+  // idioma que ofrece que traducido a la interfaz.
+  const CONTENT_LANGUAGES = [
+    {code: "es", name: "Castellano (es)"},
+    {code: "eu", name: "Euskara (eu)"},
+    {code: "en", name: "English (en)"},
+  ];
+  const DEFAULT_LANGUAGE = "es";
+
+  /**
+   * Build the language options, preselecting the course language.
+   *
+   * @param {string} selected - Language code stored for this course
+   * @returns {Array} - Template context for the language selector
+   */
+  const languageOptions = (selected) => {
+    const known = CONTENT_LANGUAGES.some((language) => language.code === selected);
+    const active = known ? selected : DEFAULT_LANGUAGE;
+    return CONTENT_LANGUAGES.map((language) => ({
+      ...language,
+      selected: language.code === active,
+    }));
+  };
+
   let modal = null;
   let initialized = false;
 
@@ -120,11 +145,12 @@ define([
   };
 
   const readDataset = (el) => {
-    const { sectionnum, beforemod, courseid } = el.dataset;
+    const { sectionnum, beforemod, courseid, courselang } = el.dataset;
     return {
       sectionnum: Number(sectionnum),
       beforemod: beforemod ? Number(beforemod) : null,
       courseid: courseid ? Number(courseid) : null,
+      courselang: courselang || DEFAULT_LANGUAGE,
     };
   };
 
@@ -138,7 +164,9 @@ define([
 
       const [bodyHTML, footerHTML] = await Promise.all([
         Templates.render("local_coursegen/add_activity_ai_modal", {}),
-        Templates.render("local_coursegen/activity_chat_footer", {}),
+        Templates.render("local_coursegen/activity_chat_footer", {
+          languages: languageOptions(payload.courselang),
+        }),
       ]);
 
       const title = await Str.get_string(
@@ -224,6 +252,12 @@ define([
       const activityTypeSelector = footerContainer.querySelector('#activity-type-selector');
       const activityType = activityTypeSelector ? activityTypeSelector.value : 'auto';
 
+      // Idioma en el que la IA debe escribir la actividad.
+      const languageSelector = footerContainer.querySelector('#activity-lang-selector');
+      const contentLanguage = languageSelector
+        ? languageSelector.value
+        : (payload.courselang || DEFAULT_LANGUAGE);
+
       textarea.value = "";
 
       // Disable form elements
@@ -231,6 +265,9 @@ define([
       textarea.disabled = true;
       if (activityTypeSelector) {
         activityTypeSelector.disabled = true;
+      }
+      if (languageSelector) {
+        languageSelector.disabled = true;
       }
       const radioButtons = footerContainer.querySelectorAll(
         'input[name="generate_images"]'
@@ -247,6 +284,7 @@ define([
           prompt,
           generateimages: generateImages,
           activitytype: activityType,
+          lang: contentLanguage,
         });
 
         if (!response.ok) {
@@ -333,6 +371,9 @@ define([
         sendBtn.disabled = false;
         if (activityTypeSelector) {
           activityTypeSelector.disabled = false;
+        }
+        if (languageSelector) {
+          languageSelector.disabled = false;
         }
         setLoading(sendBtn, false);
       }

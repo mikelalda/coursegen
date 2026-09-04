@@ -49,9 +49,18 @@ class create_mod_stream extends external_api {
             'courseid' => new external_value(PARAM_INT, 'Course id'),
             'sectionnum' => new external_value(PARAM_INT, 'Section number', VALUE_OPTIONAL),
             'prompt' => new external_value(PARAM_TEXT, 'Prompt to create module'),
-            'generateimages' => new external_value(PARAM_INT, '1 to generate images, 0 to not generate images', VALUE_OPTIONAL),
+            'generateimages' => new external_value(
+                PARAM_INT,
+                '1 to generate images, 0 to not generate images',
+                VALUE_OPTIONAL
+            ),
             'beforemod' => new external_value(PARAM_INT, 'Before module id', VALUE_OPTIONAL),
-            'activitytype' => new external_value(PARAM_ALPHANUMEXT, 'Activity type to create (auto, page, quiz, etc.)', VALUE_OPTIONAL),
+            'activitytype' => new external_value(
+                PARAM_ALPHANUMEXT,
+                'Activity type to create (auto, page, quiz, etc.)',
+                VALUE_OPTIONAL
+            ),
+            'lang' => new external_value(PARAM_ALPHANUMEXT, 'Language the AI must write the activity in', VALUE_OPTIONAL),
         ]);
     }
 
@@ -64,6 +73,7 @@ class create_mod_stream extends external_api {
      * @param int $generateimages 1 indicates AI could generate images, 0 indicates AI could not generate images
      * @param int|null $beforemod Before module id where the module will be created
      * @param string|null $activitytype Activity type to create (auto lets AI decide)
+     * @param string|null $lang Language the AI must write the activity in
      * @return array
      */
     public static function execute(
@@ -72,7 +82,8 @@ class create_mod_stream extends external_api {
         string $prompt,
         int $generateimages = 0,
         ?int $beforemod = null,
-        ?string $activitytype = 'auto'
+        ?string $activitytype = 'auto',
+        ?string $lang = null
     ) {
         global $CFG, $DB;
 
@@ -84,6 +95,7 @@ class create_mod_stream extends external_api {
                 'generateimages' => $generateimages,
                 'beforemod' => $beforemod,
                 'activitytype' => $activitytype,
+                'lang' => $lang,
             ]);
 
             $courseid = $params['courseid'];
@@ -92,6 +104,7 @@ class create_mod_stream extends external_api {
             $generateimages = $params['generateimages'] ?? 0;
             $beforemod = $params['beforemod'] ?? null;
             $activitytype = $params['activitytype'] ?? 'auto';
+            $lang = $params['lang'] ?? null;
 
             $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
             $context = context_course::instance($course->id);
@@ -114,6 +127,9 @@ class create_mod_stream extends external_api {
                 'context_type' => $aicontext ? $aicontext->context_type : null,
                 'system_instruction_name' => $aicontext ? $aicontext->name : null,
                 'activity_type' => $activitytype,
+                // Without this the AI service defaults to Spanish, so an activity
+                // added to a Basque course came back in the wrong language.
+                'lang' => ai_context::resolve_language($courseid, $lang),
             ];
 
             $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;

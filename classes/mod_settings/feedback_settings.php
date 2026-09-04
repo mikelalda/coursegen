@@ -30,7 +30,7 @@ class feedback_settings extends base_settings {
      * Add specific settings for feedback module.
      */
     public function add_settings() {
-        global $DB, $CFG;
+        global $CFG;
 
         require_once($CFG->dirroot . '/mod/feedback/lib.php');
 
@@ -91,8 +91,10 @@ class feedback_settings extends base_settings {
             }
         }
 
-        if (in_array($question['typ'], ['multichoice', 'multichoicerated'], true)
-                && empty($question['options']) && !empty($question['values'])) {
+        if (
+            in_array($question['typ'], ['multichoice', 'multichoicerated'], true)
+                && empty($question['options']) && !empty($question['values'])
+        ) {
             $question['options'] = $question['values'];
         }
 

@@ -31,7 +31,6 @@ require_once($CFG->dirroot . '/mod/lesson/locallib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class lesson_settings extends base_settings {
-
     /**
      * Add specific settings for the lesson module.
      *
@@ -65,7 +64,7 @@ class lesson_settings extends base_settings {
         }
 
         // Update jumpto values to point to actual page IDs.
-        $this->update_jump_references($createdpages, $pages);
+        $this->update_jump_references($createdpages);
     }
 
     /**
@@ -131,12 +130,12 @@ class lesson_settings extends base_settings {
             // For content pages, create a default "Continue" answer.
             if ($page->qtype == LESSON_PAGE_BRANCHTABLE) {
                 $answers = [
-                    ['text' => 'Continue', 'score' => 0, 'jumpto' => LESSON_NEXTPAGE, 'response' => '']
+                    ['text' => 'Continue', 'score' => 0, 'jumpto' => LESSON_NEXTPAGE, 'response' => ''],
                 ];
             }
         }
 
-        foreach ($answers as $index => $answerdata) {
+        foreach ($answers as $answerdata) {
             $answer = new \stdClass();
             $answer->lessonid = $lesson->id;
             $answer->pageid = $page->id;
@@ -189,9 +188,8 @@ class lesson_settings extends base_settings {
      * Update jump references to point to actual page IDs.
      *
      * @param array $createdpages Created page objects
-     * @param array $originalpages Original page data
      */
-    private function update_jump_references(array $createdpages, array $originalpages): void {
+    private function update_jump_references(array $createdpages): void {
         global $DB;
 
         // Build a mapping from index to page ID.

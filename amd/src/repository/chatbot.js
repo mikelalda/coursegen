@@ -84,6 +84,7 @@ export async function createMod({courseid, sectionnum, beforemod, jobid}) {
  *     prompt: string,
  *     generateimages: number,
  *     activitytype: string,
+ *     lang: string,
  * }} payload - The payload to create module with streaming
  * - courseid: The ID of the course to create module for
  * - sectionnum: The number of the section to create module for
@@ -91,9 +92,10 @@ export async function createMod({courseid, sectionnum, beforemod, jobid}) {
  * - prompt: The message to create
  * - generateimages: 0 not generate images, 1 generate images
  * - activitytype: The type of activity to create (auto, page, quiz, etc.)
+ * - lang: Language the AI must write the activity in (es, eu, en)
  * @return {Promise<Object>} response
  */
-export async function createModStream({courseid, sectionnum, beforemod, prompt, generateimages, activitytype}) {
+export async function createModStream({courseid, sectionnum, beforemod, prompt, generateimages, activitytype, lang}) {
     const args = {
         courseid: Number(courseid),
         sectionnum: Number(sectionnum),
@@ -101,6 +103,7 @@ export async function createModStream({courseid, sectionnum, beforemod, prompt, 
         prompt,
         generateimages: generateimages ? Number(generateimages) : 0,
         activitytype: activitytype || 'auto',
+        lang: lang || null,
     };
     return ajax.call([
         {

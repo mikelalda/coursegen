@@ -25,13 +25,29 @@
     Example context (json):
     {
         "activityname": "Discussion Forum",
-        "sectionname": "Week 1"
+        "sectionname": "Week 1",
+        "languages": [
+            {"code": "es", "name": "Spanish (es)", "selected": true},
+            {"code": "eu", "name": "Basque (eu)", "selected": false}
+        ]
     }
 }}
 <div class="col-lg-10">
     <div id="activity-chat-interface" class="py-3 w-100">
     <form class="local_coursegen_ai_input" novalidate>
         
+        <!-- Selector de idioma del contenido generado -->
+        <div class="mb-3">
+            <label class="form-label small text-muted mb-1" for="activity-lang-selector">
+                {{#str}} ai_response_language, local_coursegen {{/str}}
+            </label>
+            <select name="activity_lang" class="form-control form-control-sm" id="activity-lang-selector">
+                {{#languages}}
+                <option value="{{code}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                {{/languages}}
+            </select>
+        </div>
+
         <!-- Selector de tipo de actividad -->
         <div class="mb-3">
             <label class="form-label small text-muted mb-1">

@@ -25,6 +25,7 @@
 namespace local_coursegen\external;
 
 use aiprovider_birtai\httpclient\ai_course_api;
+use local_coursegen\ai_context;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -71,13 +72,11 @@ class designer_start extends external_api {
             self::validate_context($context);
             require_capability('moodle/course:update', $context);
 
-            $lang = $DB->get_field('local_coursegen_course_context', 'lang', ['courseid' => $courseid]);
-
             // Call the designer chat/start endpoint.
             $requestdata = [
                 'course_name' => $course->fullname,
                 'course_id' => $courseid,
-                'lang' => !empty($lang) ? $lang : 'es',
+                'lang' => ai_context::resolve_language($courseid),
             ];
 
             $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
@@ -125,7 +124,6 @@ class designer_start extends external_api {
                     'streamingurl' => $streamingurl,
                 ],
             ];
-
         } catch (\Exception $e) {
             return [
                 'success' => false,

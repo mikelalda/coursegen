@@ -27,7 +27,6 @@ namespace local_coursegen;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class module_registry {
-
     /** @var string Category: Content modules */
     const CATEGORY_CONTENT = 'content';
 
@@ -303,7 +302,7 @@ class module_registry {
     public static function get_available_for_api(): array {
         $available = [];
 
-        foreach (self::$supportedmodules as $modname => $config) {
+        foreach (array_keys(self::$supportedmodules) as $modname) {
             if (self::is_module_installed($modname) && self::is_module_enabled($modname)) {
                 $available[] = $modname;
             }

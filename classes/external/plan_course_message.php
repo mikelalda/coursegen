@@ -25,6 +25,7 @@
 namespace local_coursegen\external;
 
 use aiprovider_birtai\httpclient\ai_course_api;
+use local_coursegen\ai_context;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -94,17 +95,12 @@ class plan_course_message extends external_api {
                 ];
             }
 
-            $lang = $DB->get_field('local_coursegen_course_context', 'lang', ['courseid' => $courseid]);
-
             // Prepare the request data.
             $requestdata = [
                 'session_id' => $session->session_id,
                 'text' => $text,
+                'lang' => ai_context::resolve_language($courseid),
             ];
-
-            if (!empty($lang)) {
-                $requestdata['lang'] = $lang;
-            }
 
             $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
             $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;

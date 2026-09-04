@@ -132,7 +132,7 @@ final class privacy_provider_test extends provider_testcase {
         $user1context = context_user::instance($user1->id);
 
         $user2 = $this->getDataGenerator()->create_user();
-        $records2 = $this->create_userdata($user2->id);
+        $this->create_userdata($user2->id);
 
         // There should be one record per user in each table.
         $userfieldmap = [
@@ -174,7 +174,7 @@ final class privacy_provider_test extends provider_testcase {
         $user1context = context_user::instance($user1->id);
 
         $user2 = $this->getDataGenerator()->create_user();
-        $records2 = $this->create_userdata($user2->id);
+        $this->create_userdata($user2->id);
 
         // There should be one record per user in each table.
         $userfieldmap = [

@@ -27,8 +27,6 @@
  * Custom code to be run on installing the plugin.
  */
 function xmldb_local_coursegen_install() {
-    global $CFG, $DB;
-
     // Install base system instruction if it doesn't exist.
     local_coursegen_install_base_system_instruction();
 

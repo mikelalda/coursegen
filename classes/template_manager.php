@@ -27,7 +27,6 @@ namespace local_coursegen;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class template_manager {
-
     /** @var string Template ID: Standard course */
     const TEMPLATE_STANDARD = 'standard';
 

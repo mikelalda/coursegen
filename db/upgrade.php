@@ -56,7 +56,7 @@ function xmldb_local_coursegen_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-        // birtai savepoint reached.
+        // Birtai savepoint reached.
         upgrade_plugin_savepoint(true, 2025091701, 'local', 'coursegen');
     }
 

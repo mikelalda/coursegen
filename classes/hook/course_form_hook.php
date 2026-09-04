@@ -50,13 +50,7 @@ class course_form_hook {
         );
         $mform->setExpanded('local_coursegen_header', true);
 
-        $languages = get_string_manager()->get_list_of_languages(null, 'iso6391');
-        $options = [];
-        foreach (['es', 'eu', 'en'] as $code) {
-            if (isset($languages[$code])) {
-                $options[$code] = "$languages[$code] ($code)";
-            }
-        }
+        $options = ai_context::get_supported_languages();
         $attributes = [
             'multiple' => false,
             'noselectionstring' => get_string('choosedots'),
@@ -71,13 +65,10 @@ class course_form_hook {
 
         $mform->addHelpButton('local_coursegen_lang', 'ai_response_language', 'local_coursegen');
 
-        // Default to the current supported base language, or Spanish otherwise.
-        $currentlanguage = str_replace('-', '_', current_language());
-        $defaultcode = explode('_', $currentlanguage, 2)[0];
-        if (!isset($options[$defaultcode])) {
-            $defaultcode = 'es';
-        }
-        $mform->setDefault('local_coursegen_lang', $defaultcode);
+        // Default to the language stored for this course, or the one the site is
+        // being used in when the course has never been planned with AI.
+        $courseid = optional_param('id', 0, PARAM_INT);
+        $mform->setDefault('local_coursegen_lang', ai_context::resolve_language($courseid));
 
         // Add option to generate images for the course.
         $mform->addElement(

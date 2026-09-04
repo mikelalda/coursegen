@@ -110,7 +110,6 @@ class designer_message extends external_api {
                     'streamingurl' => $streamingurl,
                 ],
             ];
-
         } catch (\Exception $e) {
             return [
                 'success' => false,

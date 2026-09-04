@@ -24,15 +24,18 @@ import {openChatModal} from 'local_coursegen/add_activity_ai';
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 let IS_MOODLE_45 = false;
+let COURSE_LANG = 'es';
 
 /**
  * Initialize the add activity AI button.
  *
  * @param {number} courseid - The course ID to add activity AI button for
  * @param {boolean} ismoodle45 - Whether the Moodle version is 4.5
+ * @param {string} courselang - Language the AI should write the activity in
  */
-export function init(courseid, ismoodle45) {
+export function init(courseid, ismoodle45, courselang) {
     IS_MOODLE_45 = Boolean(ismoodle45);
+    COURSE_LANG = courselang || COURSE_LANG;
 
     const containers = document.querySelectorAll('.divider-content:has([data-action="open-chooser"])');
     containers.forEach(container => {
@@ -74,6 +77,7 @@ export async function injectButton(container, courseid) {
             sectionnum,
             beforemod,
             courseid,
+            courselang: COURSE_LANG,
         });
     });
 }

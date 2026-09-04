@@ -33,6 +33,75 @@ class ai_context {
     /** @var string Context type custom prompt */
     const CONTEXT_TYPE_CUSTOM_PROMPT = 'prompt';
 
+    /** @var string[] Languages the AI service has native prompts for. */
+    const SUPPORTED_LANGS = ['es', 'eu', 'en'];
+
+    /**
+     * Return the AI content languages, as code => localised name.
+     *
+     * The AI service carries a real prompt per activity type in each of these
+     * languages, so this list is not cosmetic: asking for anything else would
+     * fall back to Spanish inside the service.
+     *
+     * @return array Language code => display name.
+     */
+    public static function get_supported_languages(): array {
+        $languages = get_string_manager()->get_list_of_languages(null, 'iso6391');
+        $options = [];
+        foreach (self::SUPPORTED_LANGS as $code) {
+            $options[$code] = isset($languages[$code]) ? "$languages[$code] ($code)" : $code;
+        }
+        return $options;
+    }
+
+    /**
+     * Resolve which language the AI must write in for a course.
+     *
+     * Order: what the user picked in this form, then the language stored when
+     * the course was planned, then the language the site is being used in.
+     * Falling back to the interface language matters for activities added to a
+     * course that was never planned with AI: they used to default to Spanish
+     * no matter where they were created.
+     *
+     * @param int $courseid Course ID
+     * @param string|null $requested Language explicitly requested by the caller
+     * @return string One of self::SUPPORTED_LANGS
+     */
+    public static function resolve_language(int $courseid, ?string $requested = null): string {
+        $candidates = [$requested];
+
+        $aicontext = self::get_course_context_info($courseid);
+        if ($aicontext && !empty($aicontext->lang)) {
+            $candidates[] = $aicontext->lang;
+        }
+
+        $candidates[] = current_language();
+
+        foreach ($candidates as $candidate) {
+            $code = self::normalize_language($candidate);
+            if ($code !== null) {
+                return $code;
+            }
+        }
+
+        return self::SUPPORTED_LANGS[0];
+    }
+
+    /**
+     * Reduce a Moodle language code (es_mx, eu_x_kids) to a supported one.
+     *
+     * @param string|null $language Language code to normalize
+     * @return string|null The supported code, or null when it is not supported
+     */
+    public static function normalize_language(?string $language): ?string {
+        if (empty($language)) {
+            return null;
+        }
+        $code = strtolower(str_replace('-', '_', trim($language)));
+        $code = explode('_', $code, 2)[0];
+        return in_array($code, self::SUPPORTED_LANGS, true) ? $code : null;
+    }
+
     /**
      * Uploads the content of the system instruction to the AI endpoint.
      *

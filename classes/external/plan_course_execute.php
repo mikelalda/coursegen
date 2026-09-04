@@ -25,6 +25,7 @@
 namespace local_coursegen\external;
 
 use aiprovider_birtai\httpclient\ai_course_api;
+use local_coursegen\ai_context;
 use local_coursegen\module_registry;
 use local_coursegen\template_manager;
 
@@ -92,12 +93,7 @@ class plan_course_execute extends external_api {
                 ];
             }
 
-            $lang = $DB->get_field('local_coursegen_course_context', 'lang', ['courseid' => $courseid]);
-
-            // Prepare the request data.
-            if (!empty($lang)) {
-                $lang = (string)$lang;
-            }
+            $lang = ai_context::resolve_language($courseid);
 
             $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
             $baseurleu = get_config('local_coursegen', 'birtai_service_url_eu') ?: null;
@@ -111,7 +107,7 @@ class plan_course_execute extends external_api {
                 $moduledata = module_registry::get_api_data();
                 $exportpayload = [
                     'session_id' => $sessionid,
-                    'lang' => !empty($lang) ? $lang : 'es',
+                    'lang' => $lang,
                     'course_id' => $courseid,
                     'site_id' => md5($CFG->wwwroot),
                     'template_id' => $templatedata['template_id'],
@@ -139,9 +135,7 @@ class plan_course_execute extends external_api {
             $requestdata = [
                 'session_id' => $sessionid,
             ];
-            if (!empty($lang)) {
-                $requestdata['lang'] = $lang;
-            }
+            $requestdata['lang'] = $lang;
 
             $result = $client->request('POST', '/course/execute', $requestdata);
 

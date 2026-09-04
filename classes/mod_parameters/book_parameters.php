@@ -16,8 +16,6 @@
 
 namespace local_coursegen\mod_parameters;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Class book_parameters
  *
@@ -29,7 +27,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class book_parameters extends base_parameters {
-
     /**
      * Returns the adjusted parameters for the book module.
      *
