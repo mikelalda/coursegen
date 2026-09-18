@@ -33,7 +33,6 @@ import {
   designerStart,
   designerMessage,
   planCourseExecute,
-  createCourse,
 } from "local_coursegen/repository/chatbot";
 import {
   startExecutionStreaming,
@@ -121,7 +120,9 @@ const looksLikeStructuredHtml = (text) => {
     return false;
   }
 
-  return normalized.includes("local-coursegen-plan") || /<(section|article|div|p|ul|ol|li|h[1-6]|table|thead|tbody|tr|td|th|blockquote|pre)\b/i.test(normalized);
+  const structuredTagPattern =
+    /<(section|article|div|p|ul|ol|li|h[1-6]|table|thead|tbody|tr|td|th|blockquote|pre)\b/i;
+  return normalized.includes("local-coursegen-plan") || structuredTagPattern.test(normalized);
 };
 
 /**
@@ -227,8 +228,12 @@ const renderMarkdown = (text) => {
       }
 
       index--;
+      const headRow = headers.map((cell) => `<th>${cell}</th>`).join("");
+      const bodyRows = rows
+        .map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`)
+        .join("");
       html.push(
-        `<table><thead><tr>${headers.map((cell) => `<th>${cell}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")}</tbody></table>`
+        `<table><thead><tr>${headRow}</tr></thead><tbody>${bodyRows}</tbody></table>`
       );
       continue;
     }
