@@ -231,5 +231,15 @@ function xmldb_local_coursegen_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026020900, 'local', 'coursegen');
     }
 
+    if ($oldversion < 2026101704) {
+        // Rows of courses deleted before the course_deleted observer existed.
+        foreach (\local_coursegen\observer::COURSE_TABLES as $table) {
+            $DB->delete_records_select($table, 'courseid NOT IN (SELECT id FROM {course})');
+        }
+
+        // Coursegen savepoint reached.
+        upgrade_plugin_savepoint(true, 2026101704, 'local', 'coursegen');
+    }
+
     return true;
 }

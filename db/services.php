@@ -84,4 +84,20 @@ $functions = [
         'ajax' => true,
         'capabilities' => 'moodle/course:update',
     ],
+    'local_coursegen_designer_upload' => [
+        'classname' => 'local_coursegen\external\designer_upload',
+        'methodname' => 'execute',
+        'description' => 'Attach a document to the FP Euskadi Designer chat session',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'moodle/course:update',
+    ],
+    'local_coursegen_designer_files' => [
+        'classname' => 'local_coursegen\external\designer_files',
+        'methodname' => 'execute',
+        'description' => 'List the downloadable files of the FP Euskadi Designer session',
+        'type' => 'read',
+        'ajax' => true,
+        'capabilities' => 'moodle/course:update',
+    ],
 ];

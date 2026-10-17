@@ -34,6 +34,7 @@ use external_api;
 use external_function_parameters;
 use external_value;
 use external_single_structure;
+use external_multiple_structure;
 use context_course;
 
 /**
@@ -48,7 +49,13 @@ class designer_message extends external_api {
     public static function execute_parameters() {
         return new external_function_parameters([
             'courseid' => new external_value(PARAM_INT, 'Course ID'),
-            'text' => new external_value(PARAM_TEXT, 'Message text'),
+            'text' => new external_value(PARAM_TEXT, 'Message text (may be empty when sending attachments)', VALUE_DEFAULT, ''),
+            'attachmentids' => new external_multiple_structure(
+                new external_value(PARAM_ALPHANUM, 'Attachment ID returned by designer_upload'),
+                'Attachments sent with this message',
+                VALUE_DEFAULT,
+                []
+            ),
         ]);
     }
 
@@ -57,18 +64,21 @@ class designer_message extends external_api {
      *
      * @param int $courseid Course ID
      * @param string $text Message text
+     * @param array $attachmentids Attachment IDs returned by designer_upload
      * @return array Result with streaming URL
      */
-    public static function execute($courseid, $text) {
+    public static function execute($courseid, $text = '', $attachmentids = []) {
         global $DB, $USER;
 
         try {
             $params = self::validate_parameters(self::execute_parameters(), [
                 'courseid' => $courseid,
                 'text' => $text,
+                'attachmentids' => $attachmentids,
             ]);
             $courseid = $params['courseid'];
             $text = $params['text'];
+            $attachmentids = $params['attachmentids'];
 
             $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
             $context = context_course::instance($courseid);
@@ -93,6 +103,7 @@ class designer_message extends external_api {
             $requestdata = [
                 'session_id' => $session->session_id,
                 'text' => $text,
+                'attachment_ids' => array_values($attachmentids),
             ];
 
             $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;

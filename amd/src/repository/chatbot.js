@@ -152,14 +152,15 @@ export async function planCourseExecute(courseid) {
 /**
  * Start FP Euskadi Designer interactive chat session.
  *
- * @param {{courseid: number}} payload
- * @return {Promise<Object>} response with session_id and streamingurl
+ * @param {{courseid: number, newsession: boolean, lang: string}} payload newsession discards the saved
+ *     conversation; lang changes the course's AI language
+ * @return {Promise<Object>} response with session_id and streamingurl (new) or history (resumed)
  */
-export async function designerStart({courseid}) {
+export async function designerStart({courseid, newsession = false, lang = ""}) {
     return ajax.call([
         {
             methodname: "local_coursegen_designer_start",
-            args: {courseid: Number(courseid)},
+            args: {courseid: Number(courseid), newsession: Boolean(newsession), lang: String(lang || "")},
         },
     ])[0];
 }
@@ -167,16 +168,51 @@ export async function designerStart({courseid}) {
 /**
  * Send message to the FP Euskadi Designer chat session.
  *
- * @param {{courseid: number, text: string}} payload
+ * @param {{courseid: number, text: string, attachmentids: string[]}} payload
  * @return {Promise<Object>} response with streamingurl
  */
-export async function designerMessage({courseid, text}) {
+export async function designerMessage({courseid, text, attachmentids = []}) {
     return ajax.call([
         {
             methodname: "local_coursegen_designer_message",
             args: {
                 courseid: Number(courseid),
                 text,
+                attachmentids,
+            },
+        },
+    ])[0];
+}
+
+/**
+ * List the downloadable files of the FP Euskadi Designer session.
+ *
+ * @param {{courseid: number}} payload
+ * @return {Promise<Object>} response with files: [{name, kind, size, modified, url}]
+ */
+export async function designerFiles({courseid}) {
+    return ajax.call([
+        {
+            methodname: "local_coursegen_designer_files",
+            args: {courseid: Number(courseid)},
+        },
+    ])[0];
+}
+
+/**
+ * Upload a document to the FP Euskadi Designer chat; it goes with the next message.
+ *
+ * @param {{courseid: number, filename: string, content: string}} payload content is base64
+ * @return {Promise<Object>} response with the attachment id, name, pages and chars
+ */
+export async function designerUpload({courseid, filename, content}) {
+    return ajax.call([
+        {
+            methodname: "local_coursegen_designer_upload",
+            args: {
+                courseid: Number(courseid),
+                filename,
+                content,
             },
         },
     ])[0];

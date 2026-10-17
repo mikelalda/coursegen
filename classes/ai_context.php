@@ -88,6 +88,55 @@ class ai_context {
     }
 
     /**
+     * Default AI language for the course form.
+     *
+     * The language stored for the course; otherwise the site's, not the user's
+     * profile one (an admin with a Spanish profile on a Basque site used to get
+     * every new course in Spanish).
+     *
+     * @param int $courseid Course ID (0 for a new course)
+     * @return string One of self::SUPPORTED_LANGS
+     */
+    public static function default_language(int $courseid): string {
+        global $CFG;
+
+        $aicontext = $courseid ? self::get_course_context_info($courseid) : null;
+        foreach ([$aicontext->lang ?? null, $CFG->lang ?? null, current_language()] as $candidate) {
+            $code = self::normalize_language($candidate);
+            if ($code !== null) {
+                return $code;
+            }
+        }
+        return self::SUPPORTED_LANGS[0];
+    }
+
+    /**
+     * Change only the AI language of a course, keeping the rest of its context.
+     *
+     * @param int $courseid Course ID
+     * @param string $lang Supported language code
+     */
+    public static function set_course_language(int $courseid, string $lang): void {
+        global $DB, $USER;
+
+        $code = self::normalize_language($lang);
+        if ($code === null) {
+            throw new \coding_exception("Unsupported AI language: {$lang}");
+        }
+        $existing = $DB->get_record('local_coursegen_course_context', ['courseid' => $courseid]);
+        if ($existing) {
+            $DB->update_record('local_coursegen_course_context', (object)[
+                'id' => $existing->id,
+                'lang' => $code,
+                'timemodified' => time(),
+                'usermodified' => $USER->id,
+            ]);
+        } else {
+            self::save_course_context($courseid, '', null, $code, null);
+        }
+    }
+
+    /**
      * Reduce a Moodle language code (es_mx, eu_x_kids) to a supported one.
      *
      * @param string|null $language Language code to normalize

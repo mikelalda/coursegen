@@ -35,6 +35,7 @@ use external_api;
 use external_function_parameters;
 use external_value;
 use external_single_structure;
+use external_multiple_structure;
 use context_course;
 
 /**
@@ -49,21 +50,28 @@ class designer_start extends external_api {
     public static function execute_parameters() {
         return new external_function_parameters([
             'courseid' => new external_value(PARAM_INT, 'Course ID'),
+            'newsession' => new external_value(PARAM_BOOL, 'Start a new conversation instead of resuming', VALUE_DEFAULT, false),
+            'lang' => new external_value(PARAM_ALPHA, 'Change the AI language of the course (es, eu, en); empty keeps it',
+                VALUE_DEFAULT, ''),
         ]);
     }
 
     /**
-     * Start a designer chat session.
+     * Start a designer chat session, or resume the saved one.
      *
      * @param int $courseid Course ID
-     * @return array Result with session_id and streaming URL
+     * @param bool $newsession Discard the saved conversation and start again
+     * @param string $lang New AI language for the course, chosen in the chat ('' keeps the current one)
+     * @return array Result with session_id and either a streaming URL (new) or the history (resumed)
      */
-    public static function execute($courseid) {
+    public static function execute($courseid, $newsession = false, $lang = '') {
         global $DB, $USER;
 
         try {
             $params = self::validate_parameters(self::execute_parameters(), [
                 'courseid' => $courseid,
+                'newsession' => $newsession,
+                'lang' => $lang,
             ]);
             $courseid = $params['courseid'];
 
@@ -72,11 +80,26 @@ class designer_start extends external_api {
             self::validate_context($context);
             require_capability('moodle/course:update', $context);
 
-            // Call the designer chat/start endpoint.
+            // Language chosen in the chat: it becomes the course's AI language
+            // (also for course generation), as if set in the course settings.
+            if ($params['lang'] !== '') {
+                ai_context::set_course_language($courseid, $params['lang']);
+            }
+            $language = ai_context::resolve_language($courseid);
+
+            $existing = $DB->get_record('local_coursegen_course_sessions', [
+                'courseid' => $courseid,
+                'userid' => $USER->id,
+            ]);
+
+            // Call the designer chat/start endpoint. The backend resumes the
+            // saved conversation unless a new one is requested.
             $requestdata = [
                 'course_name' => $course->fullname,
                 'course_id' => $courseid,
-                'lang' => ai_context::resolve_language($courseid),
+                'lang' => $language,
+                'session_id' => $existing ? (string)$existing->session_id : '',
+                'new_session' => (bool)$params['newsession'],
             ];
 
             $baseurl = get_config('local_coursegen', 'birtai_service_url') ?: null;
@@ -101,10 +124,6 @@ class designer_start extends external_api {
             $sessiondata->status = 5; // Designer chat pending/active.
             $sessiondata->timemodified = time();
 
-            $existing = $DB->get_record('local_coursegen_course_sessions', [
-                'courseid' => $courseid,
-                'userid' => $USER->id,
-            ]);
             if ($existing) {
                 $sessiondata->id = $existing->id;
                 $DB->update_record('local_coursegen_course_sessions', $sessiondata);
@@ -113,16 +132,30 @@ class designer_start extends external_api {
                 $DB->insert_record('local_coursegen_course_sessions', $sessiondata);
             }
 
-            // Build streaming URL from our backend.
-            $streamingurl = $client->get_designer_streaming_url($result['session_id']);
+            $data = [
+                'session_id' => $result['session_id'],
+                'lang' => $language,
+                'resumed' => ($result['status'] ?? '') === 'chat_resumed',
+                'readytogenerate' => !empty($result['ready_to_generate']),
+                'history' => [],
+            ];
+            if ($data['resumed']) {
+                foreach ($result['history'] ?? [] as $item) {
+                    $data['history'][] = [
+                        'role' => ($item['role'] ?? '') === 'user' ? 'user' : 'ai',
+                        'content' => (string)($item['content'] ?? ''),
+                        'attachments' => array_values(array_map('strval', $item['attachments'] ?? [])),
+                    ];
+                }
+            } else {
+                // New session: the greeting is streamed.
+                $data['streamingurl'] = $client->get_designer_streaming_url($result['session_id']);
+            }
 
             return [
                 'success' => true,
                 'message' => get_string('designer_session_started', 'local_coursegen'),
-                'data' => [
-                    'session_id' => $result['session_id'],
-                    'streamingurl' => $streamingurl,
-                ],
+                'data' => $data,
             ];
         } catch (\Exception $e) {
             return [
@@ -144,7 +177,25 @@ class designer_start extends external_api {
             'message' => new external_value(PARAM_TEXT, 'Status message'),
             'data' => new external_single_structure([
                 'session_id' => new external_value(PARAM_TEXT, 'Designer session ID', VALUE_OPTIONAL),
-                'streamingurl' => new external_value(PARAM_URL, 'Streaming URL for chat', VALUE_OPTIONAL),
+                'streamingurl' => new external_value(PARAM_URL, 'Streaming URL for the greeting (new sessions)', VALUE_OPTIONAL),
+                'lang' => new external_value(PARAM_ALPHA, 'Language of the conversation', VALUE_OPTIONAL),
+                'resumed' => new external_value(PARAM_BOOL, 'A saved conversation was resumed', VALUE_OPTIONAL),
+                'readytogenerate' => new external_value(PARAM_BOOL, 'The design can be turned into a course', VALUE_OPTIONAL),
+                'history' => new external_multiple_structure(
+                    new external_single_structure([
+                        'role' => new external_value(PARAM_ALPHA, 'user or ai'),
+                        // Markdown/HTML from the designer; the JS escapes user text when rendering.
+                        'content' => new external_value(PARAM_RAW, 'Message content'),
+                        'attachments' => new external_multiple_structure(
+                            new external_value(PARAM_TEXT, 'Attached file name'),
+                            'Files attached to the message',
+                            VALUE_DEFAULT,
+                            []
+                        ),
+                    ]),
+                    'Previous messages of a resumed conversation',
+                    VALUE_OPTIONAL
+                ),
             ], 'Session data', VALUE_OPTIONAL, null, NULL_ALLOWED),
         ]);
     }

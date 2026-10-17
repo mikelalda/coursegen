@@ -170,6 +170,14 @@ span.local_coursegen-sparkles-icon.white {
     justify-content: flex-end;
 }
 
+/* The inner row (avatar + bubble, or the right-aligned user bubble) must span the
+   whole message: as a flex item it shrinks to its content, the bubble's percentage
+   max-width then resolves against that tiny width and short messages wrap letter by letter. */
+.local_coursegen_ai_msg > .d-flex {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 .local_coursegen_ai_msg.user .bubble {
     background: var(--bs-primary, var(--primary, #0d6efd));
     color: var(--bs-white, var(--white, #fff));
@@ -384,6 +392,71 @@ span.local_coursegen-sparkles-icon.white {
     pointer-events: none;
 }
 
+/* Designer: attach button, next to the textarea */
+.local_coursegen_ai_attach {
+    flex: 0 0 42px;
+    height: 42px;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: .5rem;
+    background-color: var(--bs-white, var(--white, #fff));
+    color: var(--bs-secondary, var(--secondary, #6c757d));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.local_coursegen_ai_attach:hover:not(:disabled) {
+    color: var(--bs-primary, var(--primary, #0d6efd));
+    border-color: var(--bs-primary, var(--primary, #0d6efd));
+}
+
+.local_coursegen_ai_attach:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+/* Designer: attachment chips (pending in the input area, sent in user bubbles) */
+.local_coursegen_attachment_chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    max-width: 100%;
+    padding: .2rem .55rem;
+    border-radius: 1rem;
+    font-size: .8rem;
+    background-color: var(--bs-light, var(--light, #f8f9fa));
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    color: var(--bs-dark, var(--dark, #212529));
+}
+
+.local_coursegen_attachment_chip .chip-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 20rem;
+}
+
+.local_coursegen_attachment_chip.is-error {
+    border-color: var(--bs-danger, var(--danger, #dc3545));
+    color: var(--bs-danger, var(--danger, #dc3545));
+}
+
+.local_coursegen_attachment_chip button {
+    border: 0;
+    background: none;
+    padding: 0;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+}
+
+.local_coursegen_ai_msg.user .local_coursegen_attachment_chip {
+    background-color: rgba(255, 255, 255, .2);
+    border-color: rgba(255, 255, 255, .5);
+    color: inherit;
+}
+
 /* AI Course Modal Styles */
 .local_coursegen_course_ai_modal .modal-dialog {
     max-width: 75vw;
@@ -564,6 +637,10 @@ span.local_coursegen-sparkles-icon.white {
 
 .local_coursegen_designer_chat #designer-chat-messages {
     scrollbar-width: thin;
+    /* The messages scroll on their own (the input stays visible below);
+       without min-height the flex item grows and the whole modal body scrolls. */
+    min-height: 0;
+    overscroll-behavior: contain;
 }
 
 .local_coursegen_designer_modal .modal-footer {

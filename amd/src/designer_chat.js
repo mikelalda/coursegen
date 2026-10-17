@@ -32,6 +32,8 @@ import { get_string } from "core/str";
 import {
   designerStart,
   designerMessage,
+  designerUpload,
+  designerFiles,
   planCourseExecute,
 } from "local_coursegen/repository/chatbot";
 import {
@@ -39,19 +41,120 @@ import {
 } from "local_coursegen/course_streaming";
 
 let currentModal = null;
-let userHasScrolled = false;
 
 /**
- * Scroll the chat messages area to the bottom.
- * @param {Element} container - The messages container
+ * Follow the conversation while the user is at the bottom ("stick to bottom").
+ * Scrolling up stops it; coming back to the bottom starts it again.
  */
-const scrollToBottom = (container) => {
-  if (!userHasScrolled) {
-    const modalBody = container.closest(".modal-body");
-    if (modalBody) {
-      modalBody.scrollTop = modalBody.scrollHeight;
-    }
+let stickToBottom = true;
+/** scrollTop we set ourselves, so our own scroll is not taken as the user's. */
+let programmaticScrollTop = null;
+const NEAR_BOTTOM_PX = 48;
+
+/** Same limits as designer_upload.php and the backend. */
+const ATTACH_MAX_BYTES = 10 * 1024 * 1024;
+const ATTACH_EXTENSIONS = ["pdf", "docx", "xlsx", "txt", "md", "markdown", "csv", "json", "html", "htm"];
+
+/**
+ * The element that scrolls: the messages area (see styles.css), or the modal
+ * body if the theme lets the whole body scroll instead.
+ * @param {Element} container - The messages container
+ * @returns {Element}
+ */
+const getScroller = (container) => {
+  if (container.scrollHeight > container.clientHeight + 1) {
+    return container;
   }
+  return container.closest(".modal-body") || container;
+};
+
+/**
+ * Keep the latest text in view while the user is following the conversation.
+ * @param {Element} container - The messages container
+ * @param {boolean} force - Follow again even if the user had scrolled up (they just sent a message)
+ */
+const scrollToBottom = (container, force = false) => {
+  if (force) {
+    stickToBottom = true;
+  }
+  if (!stickToBottom) {
+    return;
+  }
+  const scroller = getScroller(container);
+  scroller.scrollTop = scroller.scrollHeight;
+  programmaticScrollTop = scroller.scrollTop;
+};
+
+/**
+ * Track whether the user is at the bottom, on whichever element scrolls.
+ * @param {Element} messagesContainer - The messages container
+ */
+const watchScroll = (messagesContainer) => {
+  const onScroll = (event) => {
+    const scroller = event.currentTarget;
+    if (programmaticScrollTop !== null && Math.abs(scroller.scrollTop - programmaticScrollTop) < 2) {
+      return; // Our own scroll.
+    }
+    programmaticScrollTop = null;
+    stickToBottom = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight <= NEAR_BOTTOM_PX;
+  };
+  messagesContainer.addEventListener("scroll", onScroll, {passive: true});
+  const modalBody = messagesContainer.closest(".modal-body");
+  if (modalBody) {
+    modalBody.addEventListener("scroll", onScroll, {passive: true});
+  }
+};
+
+/**
+ * Build the HTML of a sent attachment chip.
+ * @param {string} name - File name
+ * @returns {string}
+ */
+const attachmentChipHtml = (name) => `
+  <span class="local_coursegen_attachment_chip">
+    <i class="fa fa-paperclip" aria-hidden="true"></i><span class="chip-name">${escapeHtml(name)}</span>
+  </span>
+`;
+
+/**
+ * Refresh the "Design files" panel: design document plus generated Excel/Word.
+ * @param {Element} container - Modal body element
+ * @param {number} courseid - Course ID
+ */
+const refreshFiles = async (container, courseid) => {
+  const list = container.querySelector('[data-region="designer-files-list"]');
+  const empty = container.querySelector('[data-region="designer-files-empty"]');
+  const count = container.querySelector('[data-region="designer-files-count"]');
+  if (!list) {
+    return;
+  }
+  let files = [];
+  try {
+    const response = await designerFiles({courseid});
+    files = response.success ? response.files : [];
+  } catch (_) {
+    return; // Keep the previous list: the panel is a convenience, not critical.
+  }
+  const designLabel = await get_string("designer_file_design", "local_coursegen");
+  const latestLabel = await get_string("designer_file_latest", "local_coursegen");
+  const latestVersion = files.find((file) => file.kind === "version");
+  list.innerHTML = files.map((file) => {
+    const icon = /\.xlsx$/i.test(file.name) ? "fa-file-excel-o" : /\.docx$/i.test(file.name) ? "fa-file-word-o" : "fa-file-text-o";
+    const size = file.size > 1024 ? `${Math.round(file.size / 1024)} KB` : `${file.size} B`;
+    let tag = "";
+    if (file.kind === "design") {
+      tag = ` <span class="badge bg-info text-dark">${escapeHtml(designLabel)}</span>`;
+    } else if (file === latestVersion) {
+      tag = ` <span class="badge bg-success">${escapeHtml(latestLabel)}</span>`;
+    }
+    return `<li class="d-flex align-items-center gap-2 py-1">
+      <i class="fa ${icon} text-muted" aria-hidden="true"></i>
+      <a href="${escapeHtml(file.url)}" download>${escapeHtml(file.name)}</a>${tag}
+      <small class="text-muted ms-auto">${size}</small>
+    </li>`;
+  }).join("");
+  empty.hidden = files.length > 0;
+  count.textContent = String(files.length);
 };
 
 /**
@@ -59,22 +162,27 @@ const scrollToBottom = (container) => {
  * @param {Element} messagesContainer - Messages container element
  * @param {string} content - Message content (HTML supported for AI)
  * @param {string} role - 'user' or 'ai'
+ * @param {string[]} attachments - File names sent with a user message
  * @returns {Element} The response content element (for AI messages)
  */
-const addMessage = (messagesContainer, content, role) => {
+const addMessage = (messagesContainer, content, role, attachments = []) => {
   const msgDiv = document.createElement("div");
   msgDiv.className = `local_coursegen_ai_msg ${role} mb-3`;
 
   if (role === "user") {
+    const chips = attachments.length
+      ? `<div class="d-flex flex-wrap gap-2 ${content ? "mt-2" : ""}">${attachments.map(attachmentChipHtml).join("")}</div>`
+      : "";
     msgDiv.innerHTML = `
       <div class="d-flex justify-content-end">
         <div class="bubble bg-primary text-white rounded p-3" style="max-width: 80%;">
-          ${renderMarkdown(content)}
+          ${content ? renderMarkdown(content) : ""}
+          ${chips}
         </div>
       </div>
     `;
     messagesContainer.appendChild(msgDiv);
-    scrollToBottom(messagesContainer);
+    scrollToBottom(messagesContainer, true);
     return null;
   }
 
@@ -310,16 +418,38 @@ const renderAssistantContent = (text) => {
 
 /**
  * Stream an AI response from an EventSource URL into a target element.
+ *
+ * The designer sends one segment per message: `designer_delta` appends tokens
+ * as the model writes them, `designer_segment` sets a segment's final text, and
+ * `designer_thinking` shows or hides the "Thinking..." line while the model has
+ * not written anything yet. `assistant_token` (the greeting) appends plain text.
+ *
  * @param {string} streamingUrl - SSE endpoint URL
  * @param {Element} targetElement - Element to render tokens into
  * @param {Element} messagesContainer - Messages container for scrolling
+ * @param {string} thinkingLabel - "Thinking..." in the user's language
  * @returns {Promise<Object>} Resolves with status data when complete
  */
-const streamResponse = (streamingUrl, targetElement, messagesContainer) => {
+const streamResponse = (streamingUrl, targetElement, messagesContainer, thinkingLabel = "") => {
   return new Promise((resolve, reject) => {
-    let htmlBuffer = "";
+    const segments = [];
+    let plainText = "";
+    let thinking = Boolean(thinkingLabel);
     let rafPending = false;
     let lastStatus = null;
+
+    const currentText = () => [plainText, ...segments].filter((part) => part && part.trim()).join("\n\n");
+
+    const thinkingHtml = () => `
+      <div class="local_coursegen_designer_thinking d-flex align-items-center text-muted small mt-2" role="status">
+        <span class="spinner-grow spinner-grow-sm me-2" aria-hidden="true"></span>${escapeHtml(thinkingLabel)}
+      </div>`;
+
+    const render = () => {
+      const text = currentText();
+      targetElement.innerHTML = (text ? renderAssistantContent(text) : "") + (thinking && thinkingLabel ? thinkingHtml() : "");
+      scrollToBottom(messagesContainer);
+    };
 
     const updateHtml = () => {
       if (rafPending) {
@@ -328,35 +458,66 @@ const streamResponse = (streamingUrl, targetElement, messagesContainer) => {
       rafPending = true;
       requestAnimationFrame(() => {
         rafPending = false;
-        targetElement.innerHTML = renderAssistantContent(htmlBuffer);
-        scrollToBottom(messagesContainer);
+        render();
       });
     };
+
+    const parse = (data) => {
+      try {
+        return JSON.parse(data);
+      } catch (_) {
+        return null;
+      }
+    };
+
+    // Show the indicator straight away, before the first event.
+    render();
 
     const evtSource = new EventSource(streamingUrl);
 
     evtSource.addEventListener("assistant_token", (event) => {
-      htmlBuffer += event.data;
+      plainText += event.data;
+      thinking = false;
+      updateHtml();
+    });
+
+    evtSource.addEventListener("designer_delta", (event) => {
+      const payload = parse(event.data);
+      if (payload) {
+        segments[payload.seg] = (segments[payload.seg] || "") + payload.text;
+        thinking = false;
+        updateHtml();
+      }
+    });
+
+    evtSource.addEventListener("designer_segment", (event) => {
+      const payload = parse(event.data);
+      if (payload) {
+        segments[payload.seg] = payload.text;
+        updateHtml();
+      }
+    });
+
+    evtSource.addEventListener("designer_thinking", (event) => {
+      const payload = parse(event.data);
+      thinking = Boolean(payload && payload.active);
       updateHtml();
     });
 
     evtSource.addEventListener("designer_status", (event) => {
-      try {
-        lastStatus = JSON.parse(event.data);
-      } catch (_) {
-        // Ignore parse errors.
-      }
+      lastStatus = parse(event.data) || lastStatus;
     });
 
     evtSource.addEventListener("assistant_message_end", () => {
-      // Final render
-      targetElement.innerHTML = renderAssistantContent(htmlBuffer);
-      scrollToBottom(messagesContainer);
+      thinking = false;
+      render();
       evtSource.close();
       resolve(lastStatus || {});
     });
 
     evtSource.addEventListener("error", (event) => {
+      thinking = false;
+      render();
       if (event.data) {
         targetElement.innerHTML += `<div class="text-danger mt-2"><small>${escapeHtml(event.data)}</small></div>`;
       }
@@ -367,8 +528,9 @@ const streamResponse = (streamingUrl, targetElement, messagesContainer) => {
     evtSource.onerror = () => {
       // EventSource connection error — treat as end
       evtSource.close();
-      if (htmlBuffer) {
-        targetElement.innerHTML = renderAssistantContent(htmlBuffer);
+      thinking = false;
+      if (currentText()) {
+        render();
         resolve(lastStatus || {});
       } else {
         reject(new Error("Connection lost"));
@@ -409,21 +571,28 @@ export const init = async (params = {}) => {
     currentModal.show();
 
     const bodyEl = currentModal.getBody()[0];
-    userHasScrolled = false;
+    stickToBottom = true;
+    programmaticScrollTop = null;
+    watchScroll(bodyEl.querySelector("#designer-chat-messages"));
 
-    // Setup scroll detection.
-    const modalBody = currentModal.getBody()[0].closest(".modal-body") || currentModal.getBody()[0];
-    modalBody.addEventListener("scroll", () => {
-      userHasScrolled = true;
-      const threshold = 50;
-      if (modalBody.scrollTop + modalBody.clientHeight >= modalBody.scrollHeight - threshold) {
-        setTimeout(() => {
-          userHasScrolled = false;
-        }, 1000);
-      }
-    }, { passive: true });
+    // "New conversation": confirm, then reopen the modal discarding the saved one.
+    const newConversationBtn = bodyEl.querySelector('[data-action="designer-new-conversation"]');
+    if (newConversationBtn) {
+      newConversationBtn.addEventListener("click", async () => {
+        try {
+          await Notification.saveCancelPromise(
+            await get_string("designer_new_conversation", "local_coursegen"),
+            await get_string("designer_new_conversation_confirm", "local_coursegen"),
+            await get_string("designer_new_conversation", "local_coursegen"),
+          );
+        } catch (_) {
+          return; // Cancelled.
+        }
+        await init({...params, newsession: true});
+      });
+    }
 
-    // Start the designer session.
+    // Start (or resume) the designer session.
     await startDesignerChat(bodyEl, params);
 
     return currentModal;
@@ -444,11 +613,19 @@ const startDesignerChat = async (container, params) => {
   const chatInput = container.querySelector("#designerChatInput");
   const sendBtn = container.querySelector("#designer-send-btn");
   const initialResponse = container.querySelector("#designer-ai-response");
+  const attachBtn = container.querySelector('[data-action="designer-attach"]');
+  const attachInput = container.querySelector('[data-region="designer-attach-input"]');
+  const attachmentsRegion = container.querySelector('[data-region="designer-attachments"]');
+  const newConversationBtn = container.querySelector('[data-action="designer-new-conversation"]');
 
-  // 1. Start the designer session via AJAX.
+  // 1. Start (or resume) the designer session via AJAX.
   let sessionData;
   try {
-    const result = await designerStart({ courseid: params.courseid });
+    const result = await designerStart({
+      courseid: params.courseid,
+      newsession: Boolean(params.newsession),
+      lang: params.lang || "",
+    });
     if (!result.success) {
       const errMsg = result.message || 'Error al iniciar la sesión del diseñador';
       initialResponse.innerHTML = `<div class="text-danger">${escapeHtml(errMsg)}</div>`;
@@ -461,40 +638,191 @@ const startDesignerChat = async (container, params) => {
     return;
   }
 
-  // 2. Stream the initial greeting from the orchestrator.
-  if (!sessionData || !sessionData.streamingurl) {
+  if (newConversationBtn) {
+    newConversationBtn.disabled = false;
+  }
+  // Language of the conversation: changing it reopens the same conversation in
+  // the new language (and makes it the course's AI language).
+  const languageSelect = container.querySelector('[data-region="designer-language"]');
+  if (languageSelect && sessionData && sessionData.lang) {
+    languageSelect.value = sessionData.lang;
+    languageSelect.disabled = false;
+    languageSelect.addEventListener("change", () => {
+      void init({courseid: params.courseid, lang: languageSelect.value});
+    });
+  }
+  const filesBtn = container.querySelector('[data-action="designer-toggle-files"]');
+  const filesPanel = container.querySelector('[data-region="designer-files-panel"]');
+  if (filesBtn && filesPanel) {
+    filesBtn.disabled = false;
+    filesBtn.addEventListener("click", () => {
+      filesPanel.hidden = !filesPanel.hidden;
+      filesBtn.setAttribute("aria-expanded", String(!filesPanel.hidden));
+      if (!filesPanel.hidden) {
+        void refreshFiles(container, params.courseid);
+      }
+    });
+  }
+  void refreshFiles(container, params.courseid);
+
+  // 2. Resumed: paint the saved conversation. New: stream the greeting.
+  if (sessionData && sessionData.resumed) {
+    initialResponse.closest(".local_coursegen_ai_msg").remove();
+    (sessionData.history || []).forEach((item) => {
+      if (item.role === "user") {
+        addMessage(messagesContainer, item.content, "user", item.attachments || []);
+      } else {
+        addMessage(messagesContainer, "", "ai").innerHTML = renderAssistantContent(item.content);
+      }
+    });
+    const note = document.createElement("div");
+    note.className = "text-center text-muted small mb-3";
+    note.textContent = await get_string("designer_resumed", "local_coursegen");
+    messagesContainer.appendChild(note);
+    scrollToBottom(messagesContainer);
+
+    if (sessionData.readytogenerate) {
+      await handlePhaseTransition(container, params, {siguiente_agente: "end"}, messagesContainer);
+    }
+  } else if (!sessionData || !sessionData.streamingurl) {
     initialResponse.innerHTML = `<div class="text-danger">Error: no se recibió URL de streaming</div>`;
     return;
+  } else {
+    try {
+      await streamResponse(sessionData.streamingurl, initialResponse, messagesContainer);
+    } catch (error) {
+      const errMsg = error.message || 'Se perdió la conexión con el diseñador';
+      initialResponse.innerHTML = `<div class="text-danger mt-2">${escapeHtml(errMsg)}</div>`;
+    }
   }
 
-  try {
-    await streamResponse(sessionData.streamingurl, initialResponse, messagesContainer);
-  } catch (error) {
-    const errMsg = error.message || 'Se perdió la conexión con el diseñador';
-    initialResponse.innerHTML = `<div class="text-danger mt-2">${escapeHtml(errMsg)}</div>`;
+  // Attachments waiting for the next message: {key, id, name, uploading, chip}.
+  let pending = [];
+  let sending = false;
+
+  const updateControls = () => {
+    const uploading = pending.some((item) => item.uploading);
+    sendBtn.disabled = sending || uploading;
+    chatInput.disabled = sending;
+    if (attachBtn) {
+      attachBtn.disabled = sending;
+    }
+  };
+
+  const removePending = (item) => {
+    pending = pending.filter((other) => other !== item);
+    item.chip.remove();
+    updateControls();
+  };
+
+  const renderChip = async (item, error = "") => {
+    const removeLabel = await get_string("designer_attach_remove", "local_coursegen", item.name);
+    let label = escapeHtml(item.name);
+    if (item.uploading) {
+      label = escapeHtml(await get_string("designer_attach_uploading", "local_coursegen", item.name));
+    }
+    item.chip.className = `local_coursegen_attachment_chip${error ? " is-error" : ""}`;
+    item.chip.innerHTML = `
+      ${item.uploading
+        ? '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'
+        : `<i class="fa ${error ? "fa-exclamation-triangle" : "fa-paperclip"}" aria-hidden="true"></i>`}
+      <span class="chip-name" title="${escapeHtml(error || item.name)}">${label}</span>
+      ${error ? `<small>${escapeHtml(error)}</small>` : ""}
+      ${item.uploading ? "" : `<button type="button" aria-label="${escapeHtml(removeLabel)}" title="${escapeHtml(removeLabel)}">
+        <i class="fa fa-times" aria-hidden="true"></i></button>`}
+    `;
+    const removeBtn = item.chip.querySelector("button");
+    if (removeBtn) {
+      removeBtn.addEventListener("click", () => removePending(item));
+    }
+  };
+
+  const readAsBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    // Data URL "data:<mime>;base64,<payload>": keep only the payload.
+    reader.onload = () => resolve(String(reader.result).split(",", 2)[1] || "");
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+  const uploadFile = async (file) => {
+    const item = {name: file.name, id: null, uploading: true, chip: document.createElement("span")};
+    pending.push(item);
+    attachmentsRegion.appendChild(item.chip);
+
+    const extension = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "";
+    let error = "";
+    if (!ATTACH_EXTENSIONS.includes(extension)) {
+      error = await get_string("designer_attach_badtype", "local_coursegen", ATTACH_EXTENSIONS.join(", "));
+    } else if (file.size > ATTACH_MAX_BYTES) {
+      error = await get_string("designer_attach_toobig", "local_coursegen", "10 MB");
+    } else if (!file.size) {
+      error = await get_string("designer_attach_empty", "local_coursegen");
+    }
+    if (error) {
+      item.uploading = false;
+      await renderChip(item, error);
+      updateControls();
+      return;
+    }
+
+    await renderChip(item);
+    updateControls();
+    try {
+      const response = await designerUpload({
+        courseid: params.courseid,
+        filename: file.name,
+        content: await readAsBase64(file),
+      });
+      item.uploading = false;
+      if (response.success && response.data) {
+        item.id = response.data.id;
+        item.name = response.data.name;
+        await renderChip(item);
+      } else {
+        await renderChip(item, response.message || await get_string("designer_attach_failed", "local_coursegen"));
+      }
+    } catch (uploadError) {
+      item.uploading = false;
+      await renderChip(item, uploadError.message || await get_string("designer_attach_failed", "local_coursegen"));
+    }
+    updateControls();
+  };
+
+  if (attachBtn && attachInput) {
+    attachBtn.addEventListener("click", () => attachInput.click());
+    attachInput.addEventListener("change", () => {
+      Array.from(attachInput.files || []).forEach((file) => {
+        void uploadFile(file);
+      });
+      attachInput.value = ""; // Allow picking the same file again.
+    });
   }
 
   // 3. Wire up the chat form for subsequent messages.
   const submitCurrentMessage = async () => {
     const text = chatInput.value.trim();
-    if (!text) {
+    const ready = pending.filter((item) => item.id);
+    if (sending || pending.some((item) => item.uploading) || (!text && !ready.length)) {
       return;
     }
 
-    // Add user message.
-    addMessage(messagesContainer, text, "user");
+    // Add user message. Failed uploads stay out; their chips are cleared too.
+    addMessage(messagesContainer, text, "user", ready.map((item) => item.name));
     chatInput.value = "";
-    sendBtn.disabled = true;
-    chatInput.disabled = true;
+    pending.forEach((item) => item.chip.remove());
+    pending = [];
+    sending = true;
+    updateControls();
 
     // Add AI response placeholder.
     const aiResponseEl = addMessage(messagesContainer, "", "ai");
 
-    // Show loading spinner.
+    // "Thinking..." until the first token (streamResponse keeps it updated).
+    const thinkingLabel = await get_string("designer_thinking", "local_coursegen");
     aiResponseEl.innerHTML = `
-      <div class="d-flex align-items-center text-muted">
-        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-        <small>Pensando...</small>
+      <div class="d-flex align-items-center text-muted small" role="status">
+        <span class="spinner-grow spinner-grow-sm me-2" aria-hidden="true"></span>${escapeHtml(thinkingLabel)}
       </div>
     `;
 
@@ -503,6 +831,7 @@ const startDesignerChat = async (container, params) => {
       const response = await designerMessage({
         courseid: params.courseid,
         text: text,
+        attachmentids: ready.map((item) => item.id),
       });
 
       if (!response.success) {
@@ -515,6 +844,7 @@ const startDesignerChat = async (container, params) => {
         response.data.streamingurl,
         aiResponseEl,
         messagesContainer,
+        thinkingLabel,
       );
 
       // Check if the designer has transitioned to a design phase.
@@ -525,9 +855,10 @@ const startDesignerChat = async (container, params) => {
     } catch (error) {
       aiResponseEl.innerHTML = `<div class="text-danger">${escapeHtml(error.message)}</div>`;
     } finally {
-      sendBtn.disabled = false;
-      chatInput.disabled = false;
+      sending = false;
+      updateControls();
       chatInput.focus();
+      void refreshFiles(container, params.courseid);
     }
   };
 

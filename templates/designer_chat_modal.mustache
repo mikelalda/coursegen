@@ -28,6 +28,37 @@
 <div class="local_coursegen_designer_chat container-fluid h-100 d-flex flex-column"
      aria-label="{{#str}} designer_chat_arialabel, local_coursegen {{/str}}">
 
+    <!-- Toolbar: design files and start over (the conversation is saved and resumed by default) -->
+    <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-outline-primary" data-action="designer-toggle-files"
+                    aria-expanded="false" aria-controls="designer-files-panel" disabled>
+                <i class="fa fa-folder-open me-1" aria-hidden="true"></i>{{#str}} designer_files, local_coursegen {{/str}}
+                <span class="badge bg-primary ms-1" data-region="designer-files-count">0</span>
+            </button>
+            <!-- Language of the conversation (and the course's AI language); names are endonyms -->
+            <label class="sr-only" for="designer-language">{{#str}} designer_language, local_coursegen {{/str}}</label>
+            <select id="designer-language" class="form-select form-select-sm w-auto" data-region="designer-language"
+                    title="{{#str}} designer_language, local_coursegen {{/str}}" disabled>
+                <option value="eu">Euskara</option>
+                <option value="es">Español</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-action="designer-new-conversation" disabled>
+            <i class="fa fa-plus me-1" aria-hidden="true"></i>{{#str}} designer_new_conversation, local_coursegen {{/str}}
+        </button>
+    </div>
+
+    <!-- Design files: download, edit offline, attach again to continue -->
+    <div class="card mb-2" id="designer-files-panel" data-region="designer-files-panel" hidden>
+        <div class="card-body py-2">
+            <p class="small text-muted mb-2">{{#str}} designer_files_help, local_coursegen {{/str}}</p>
+            <ul class="list-unstyled mb-0" data-region="designer-files-list"></ul>
+            <p class="small text-muted mb-0" data-region="designer-files-empty">{{#str}} designer_files_none, local_coursegen {{/str}}</p>
+        </div>
+    </div>
+
     <!-- Chat messages area -->
     <div class="flex-grow-1 overflow-auto pb-3" id="designer-chat-messages"
          data-region="designer-chat-messages">
@@ -73,10 +104,19 @@
     <!-- Chat input area (always visible) -->
     <div class="border-top pt-3" id="designer-chat-input-area">
         <form id="designer-chat-form">
+            <!-- Attachments waiting to be sent with the next message -->
+            <div class="d-flex flex-wrap gap-2 mb-2" data-region="designer-attachments" aria-live="polite"></div>
             <label class="sr-only" for="designerChatInput">{{#str}} enter_message, local_coursegen {{/str}}</label>
             <div class="local_coursegen_ai_input_group">
+                <input type="file" class="d-none" id="designer-attach-input" data-region="designer-attach-input" multiple
+                       accept=".pdf,.docx,.xlsx,.txt,.md,.markdown,.csv,.json,.html,.htm">
+                <button class="local_coursegen_ai_attach" type="button" data-action="designer-attach"
+                        title="{{#str}} designer_attach, local_coursegen {{/str}} — {{#str}} designer_attach_help, local_coursegen {{/str}}"
+                        aria-label="{{#str}} designer_attach, local_coursegen {{/str}}">
+                    <i class="fa fa-paperclip" aria-hidden="true"></i>
+                </button>
                 <textarea id="designerChatInput" class="form-control local_coursegen_ai_textarea" rows="2"
-                    placeholder="{{#str}} designer_chat_placeholder, local_coursegen {{/str}}" required></textarea>
+                    placeholder="{{#str}} designer_chat_placeholder, local_coursegen {{/str}}"></textarea>
                 <button class="local_coursegen_ai_send" type="button"
                         title="{{#str}} send, local_coursegen {{/str}}" id="designer-send-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">

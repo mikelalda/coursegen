@@ -65,10 +65,10 @@ class course_form_hook {
 
         $mform->addHelpButton('local_coursegen_lang', 'ai_response_language', 'local_coursegen');
 
-        // Default to the language stored for this course, or the one the site is
-        // being used in when the course has never been planned with AI.
+        // Default to the language stored for this course, or the site's when the
+        // course has never been planned with AI (not the user's profile language).
         $courseid = optional_param('id', 0, PARAM_INT);
-        $mform->setDefault('local_coursegen_lang', ai_context::resolve_language($courseid));
+        $mform->setDefault('local_coursegen_lang', ai_context::default_language($courseid));
 
         // Add option to generate images for the course.
         $mform->addElement(
