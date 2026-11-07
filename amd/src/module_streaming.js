@@ -21,7 +21,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {get_string} from "core/str";
+import {get_string as getString} from "core/str";
 
 // Global state for scroll behavior
 let userHasScrolled = false;
@@ -66,7 +66,7 @@ const setupScrollDetection = (scrollContainer) => {
     }
   };
 
-  scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+  scrollContainer.addEventListener("scroll", handleScroll, {passive: true});
 };
 
 /**
@@ -106,7 +106,7 @@ const addStatus = (message, type, container) => {
  * @param {Element} container - Container element for displaying results
  * @param {Object} params - Additional parameters (courseid, sectionnum, beforemod)
  */
-export const startModuleStreaming = async (
+export const startModuleStreaming = async(
   streamingUrl,
   container,
   params = {}
@@ -145,71 +145,71 @@ export const startModuleStreaming = async (
   const es = new EventSource(streamingUrl);
 
   // Essential event handlers for module creation
-  const onResourceStart = async () => {
-    const message = await get_string(
+  const onResourceStart = async() => {
+    const message = await getString(
       "module_streaming_start",
       "local_coursegen"
     );
     addStatus(message, "info", eventList);
   };
 
-  const onSchemaStart = async () => {
-    const message = await get_string(
+  const onSchemaStart = async() => {
+    const message = await getString(
       "module_streaming_schema_start",
       "local_coursegen"
     );
     addStatus(message, "info", eventList);
   };
 
-  const onSchemaDone = async () => {
-    const message = await get_string(
+  const onSchemaDone = async() => {
+    const message = await getString(
       "module_streaming_schema_done",
       "local_coursegen"
     );
     addStatus(message, "success", eventList);
   };
 
-  const onImagesStart = async () => {
-    const message = await get_string(
+  const onImagesStart = async() => {
+    const message = await getString(
       "module_streaming_images_start",
       "local_coursegen"
     );
     addStatus(message, "info", eventList);
   };
 
-  const onImagesDone = async () => {
-    const message = await get_string(
+  const onImagesDone = async() => {
+    const message = await getString(
       "module_streaming_images_done",
       "local_coursegen"
     );
     addStatus(message, "success", eventList);
   };
 
-  const onParametersStart = async () => {
-    const message = await get_string(
+  const onParametersStart = async() => {
+    const message = await getString(
       "module_streaming_parameters_start",
       "local_coursegen"
     );
     addStatus(message, "info", eventList);
   };
 
-  const onParametersDone = async () => {
-    const message = await get_string(
+  const onParametersDone = async() => {
+    const message = await getString(
       "module_streaming_parameters_done",
       "local_coursegen"
     );
     addStatus(message, "success", eventList);
   };
 
-  const onOutputStart = async () => {
-    const message = await get_string(
+  const onOutputStart = async() => {
+    const message = await getString(
       "module_streaming_output_start",
       "local_coursegen"
     );
     addStatus(message, "info", eventList);
   };
 
-  const onResourceComplete = async () => {
+  const onResourceComplete = async() => {
     // Close the EventSource connection first
     es.close();
 
@@ -222,14 +222,14 @@ export const startModuleStreaming = async (
       `;
     }
 
-    const completeMessage = await get_string(
+    const completeMessage = await getString(
       "module_streaming_complete",
       "local_coursegen"
     );
     addStatus(completeMessage, "success", eventList);
 
     try {
-      const { createMod } = await import("local_coursegen/repository/chatbot");
+      const {createMod} = await import("local_coursegen/repository/chatbot");
       const response = await createMod({
         courseid: params.courseid,
         sectionnum: params.sectionnum,
@@ -237,7 +237,7 @@ export const startModuleStreaming = async (
         jobid: params.jobid,
       });
       if (response && response.ok) {
-        const successMessage = await get_string(
+        const successMessage = await getString(
           "module_streaming_added_success",
           "local_coursegen"
         );
@@ -246,7 +246,7 @@ export const startModuleStreaming = async (
           window.location.href = response.data.activityurl;
         }, 1000);
       } else {
-        const defaultError = await get_string(
+        const defaultError = await getString(
           "module_streaming_add_error",
           "local_coursegen"
         );
@@ -255,7 +255,7 @@ export const startModuleStreaming = async (
         addStatus(`⚠️ ${msg}`, "error", eventList);
       }
     } catch (err) {
-      const errorMessage = await get_string(
+      const errorMessage = await getString(
         "module_streaming_add_problem",
         "local_coursegen",
         err?.message || err
@@ -264,9 +264,9 @@ export const startModuleStreaming = async (
     }
   };
 
-  const onError = async () => {
+  const onError = async() => {
     es.close();
-    const errorMessage = await get_string(
+    const errorMessage = await getString(
       "module_streaming_creation_error",
       "local_coursegen"
     );

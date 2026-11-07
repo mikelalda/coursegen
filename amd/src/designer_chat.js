@@ -28,7 +28,7 @@
 import Modal from "core/modal";
 import Templates from "core/templates";
 import Notification from "core/notification";
-import { get_string } from "core/str";
+import {get_string as getString} from "core/str";
 import {
   designerStart,
   designerMessage,
@@ -47,7 +47,7 @@ let currentModal = null;
  * Scrolling up stops it; coming back to the bottom starts it again.
  */
 let stickToBottom = true;
-/** scrollTop we set ourselves, so our own scroll is not taken as the user's. */
+/** The scrollTop we set ourselves, so our own scroll is not taken as the user's. */
 let programmaticScrollTop = null;
 const NEAR_BOTTOM_PX = 48;
 
@@ -117,11 +117,26 @@ const attachmentChipHtml = (name) => `
 `;
 
 /**
+ * Font Awesome icon for a file of the designer.
+ * @param {string} name - File name
+ * @returns {string} Icon class
+ */
+const fileIcon = (name) => {
+  if (/\.xlsx$/i.test(name)) {
+    return "fa-file-excel-o";
+  }
+  if (/\.docx$/i.test(name)) {
+    return "fa-file-word-o";
+  }
+  return "fa-file-text-o";
+};
+
+/**
  * Refresh the "Design files" panel: design document plus generated Excel/Word.
  * @param {Element} container - Modal body element
  * @param {number} courseid - Course ID
  */
-const refreshFiles = async (container, courseid) => {
+const refreshFiles = async(container, courseid) => {
   const list = container.querySelector('[data-region="designer-files-list"]');
   const empty = container.querySelector('[data-region="designer-files-empty"]');
   const count = container.querySelector('[data-region="designer-files-count"]');
@@ -135,11 +150,11 @@ const refreshFiles = async (container, courseid) => {
   } catch (_) {
     return; // Keep the previous list: the panel is a convenience, not critical.
   }
-  const designLabel = await get_string("designer_file_design", "local_coursegen");
-  const latestLabel = await get_string("designer_file_latest", "local_coursegen");
+  const designLabel = await getString("designer_file_design", "local_coursegen");
+  const latestLabel = await getString("designer_file_latest", "local_coursegen");
   const latestVersion = files.find((file) => file.kind === "version");
   list.innerHTML = files.map((file) => {
-    const icon = /\.xlsx$/i.test(file.name) ? "fa-file-excel-o" : /\.docx$/i.test(file.name) ? "fa-file-word-o" : "fa-file-text-o";
+    const icon = fileIcon(file.name);
     const size = file.size > 1024 ? `${Math.round(file.size / 1024)} KB` : `${file.size} B`;
     let tag = "";
     if (file.kind === "design") {
@@ -545,7 +560,7 @@ const streamResponse = (streamingUrl, targetElement, messagesContainer, thinking
  * @param {number} params.courseid - Course ID
  * @returns {Promise}
  */
-export const init = async (params = {}) => {
+export const init = async(params = {}) => {
   try {
     if (currentModal) {
       currentModal.destroy();
@@ -553,7 +568,7 @@ export const init = async (params = {}) => {
     }
 
     const [title, bodyHTML, footerHTML] = await Promise.all([
-      get_string("designer_chat_title", "local_coursegen"),
+      getString("designer_chat_title", "local_coursegen"),
       Templates.render("local_coursegen/designer_chat_modal", {}),
       Templates.render("local_coursegen/add_course_ai_modal_footer", {}),
     ]);
@@ -578,12 +593,12 @@ export const init = async (params = {}) => {
     // "New conversation": confirm, then reopen the modal discarding the saved one.
     const newConversationBtn = bodyEl.querySelector('[data-action="designer-new-conversation"]');
     if (newConversationBtn) {
-      newConversationBtn.addEventListener("click", async () => {
+      newConversationBtn.addEventListener("click", async() => {
         try {
           await Notification.saveCancelPromise(
-            await get_string("designer_new_conversation", "local_coursegen"),
-            await get_string("designer_new_conversation_confirm", "local_coursegen"),
-            await get_string("designer_new_conversation", "local_coursegen"),
+            await getString("designer_new_conversation", "local_coursegen"),
+            await getString("designer_new_conversation_confirm", "local_coursegen"),
+            await getString("designer_new_conversation", "local_coursegen"),
           );
         } catch (_) {
           return; // Cancelled.
@@ -603,41 +618,13 @@ export const init = async (params = {}) => {
 };
 
 /**
- * Start the designer chat session and wire up the chat form.
+ * Enable the toolbar of the designer chat once its session has started.
  * @param {Element} container - Modal body element
  * @param {Object} params - Parameters including courseid
+ * @param {Object} sessionData - Session returned by the designer service
  */
-const startDesignerChat = async (container, params) => {
-  const messagesContainer = container.querySelector("#designer-chat-messages");
-  const chatForm = container.querySelector("#designer-chat-form");
-  const chatInput = container.querySelector("#designerChatInput");
-  const sendBtn = container.querySelector("#designer-send-btn");
-  const initialResponse = container.querySelector("#designer-ai-response");
-  const attachBtn = container.querySelector('[data-action="designer-attach"]');
-  const attachInput = container.querySelector('[data-region="designer-attach-input"]');
-  const attachmentsRegion = container.querySelector('[data-region="designer-attachments"]');
+const enableToolbar = (container, params, sessionData) => {
   const newConversationBtn = container.querySelector('[data-action="designer-new-conversation"]');
-
-  // 1. Start (or resume) the designer session via AJAX.
-  let sessionData;
-  try {
-    const result = await designerStart({
-      courseid: params.courseid,
-      newsession: Boolean(params.newsession),
-      lang: params.lang || "",
-    });
-    if (!result.success) {
-      const errMsg = result.message || 'Error al iniciar la sesión del diseñador';
-      initialResponse.innerHTML = `<div class="text-danger">${escapeHtml(errMsg)}</div>`;
-      return;
-    }
-    sessionData = result.data;
-  } catch (error) {
-    const errMsg = error.message || 'No se pudo conectar con el servicio del diseñador';
-    initialResponse.innerHTML = `<div class="text-danger">${escapeHtml(errMsg)}</div>`;
-    return;
-  }
-
   if (newConversationBtn) {
     newConversationBtn.disabled = false;
   }
@@ -664,6 +651,44 @@ const startDesignerChat = async (container, params) => {
     });
   }
   void refreshFiles(container, params.courseid);
+};
+
+/**
+ * Start the designer chat session and wire up the chat form.
+ * @param {Element} container - Modal body element
+ * @param {Object} params - Parameters including courseid
+ */
+const startDesignerChat = async(container, params) => {
+  const messagesContainer = container.querySelector("#designer-chat-messages");
+  const chatForm = container.querySelector("#designer-chat-form");
+  const chatInput = container.querySelector("#designerChatInput");
+  const sendBtn = container.querySelector("#designer-send-btn");
+  const initialResponse = container.querySelector("#designer-ai-response");
+  const attachBtn = container.querySelector('[data-action="designer-attach"]');
+  const attachInput = container.querySelector('[data-region="designer-attach-input"]');
+  const attachmentsRegion = container.querySelector('[data-region="designer-attachments"]');
+
+  // 1. Start (or resume) the designer session via AJAX.
+  let sessionData;
+  try {
+    const result = await designerStart({
+      courseid: params.courseid,
+      newsession: Boolean(params.newsession),
+      lang: params.lang || "",
+    });
+    if (!result.success) {
+      const errMsg = result.message || 'Error al iniciar la sesión del diseñador';
+      initialResponse.innerHTML = `<div class="text-danger">${escapeHtml(errMsg)}</div>`;
+      return;
+    }
+    sessionData = result.data;
+  } catch (error) {
+    const errMsg = error.message || 'No se pudo conectar con el servicio del diseñador';
+    initialResponse.innerHTML = `<div class="text-danger">${escapeHtml(errMsg)}</div>`;
+    return;
+  }
+
+  enableToolbar(container, params, sessionData);
 
   // 2. Resumed: paint the saved conversation. New: stream the greeting.
   if (sessionData && sessionData.resumed) {
@@ -677,12 +702,12 @@ const startDesignerChat = async (container, params) => {
     });
     const note = document.createElement("div");
     note.className = "text-center text-muted small mb-3";
-    note.textContent = await get_string("designer_resumed", "local_coursegen");
+    note.textContent = await getString("designer_resumed", "local_coursegen");
     messagesContainer.appendChild(note);
     scrollToBottom(messagesContainer);
 
     if (sessionData.readytogenerate) {
-      await handlePhaseTransition(container, params, {siguiente_agente: "end"}, messagesContainer);
+      await handlePhaseTransition(container, params, {"siguiente_agente": "end"}, messagesContainer);
     }
   } else if (!sessionData || !sessionData.streamingurl) {
     initialResponse.innerHTML = `<div class="text-danger">Error: no se recibió URL de streaming</div>`;
@@ -715,11 +740,11 @@ const startDesignerChat = async (container, params) => {
     updateControls();
   };
 
-  const renderChip = async (item, error = "") => {
-    const removeLabel = await get_string("designer_attach_remove", "local_coursegen", item.name);
+  const renderChip = async(item, error = "") => {
+    const removeLabel = await getString("designer_attach_remove", "local_coursegen", item.name);
     let label = escapeHtml(item.name);
     if (item.uploading) {
-      label = escapeHtml(await get_string("designer_attach_uploading", "local_coursegen", item.name));
+      label = escapeHtml(await getString("designer_attach_uploading", "local_coursegen", item.name));
     }
     item.chip.className = `local_coursegen_attachment_chip${error ? " is-error" : ""}`;
     item.chip.innerHTML = `
@@ -745,7 +770,7 @@ const startDesignerChat = async (container, params) => {
     reader.readAsDataURL(file);
   });
 
-  const uploadFile = async (file) => {
+  const uploadFile = async(file) => {
     const item = {name: file.name, id: null, uploading: true, chip: document.createElement("span")};
     pending.push(item);
     attachmentsRegion.appendChild(item.chip);
@@ -753,11 +778,11 @@ const startDesignerChat = async (container, params) => {
     const extension = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "";
     let error = "";
     if (!ATTACH_EXTENSIONS.includes(extension)) {
-      error = await get_string("designer_attach_badtype", "local_coursegen", ATTACH_EXTENSIONS.join(", "));
+      error = await getString("designer_attach_badtype", "local_coursegen", ATTACH_EXTENSIONS.join(", "));
     } else if (file.size > ATTACH_MAX_BYTES) {
-      error = await get_string("designer_attach_toobig", "local_coursegen", "10 MB");
+      error = await getString("designer_attach_toobig", "local_coursegen", "10 MB");
     } else if (!file.size) {
-      error = await get_string("designer_attach_empty", "local_coursegen");
+      error = await getString("designer_attach_empty", "local_coursegen");
     }
     if (error) {
       item.uploading = false;
@@ -780,11 +805,11 @@ const startDesignerChat = async (container, params) => {
         item.name = response.data.name;
         await renderChip(item);
       } else {
-        await renderChip(item, response.message || await get_string("designer_attach_failed", "local_coursegen"));
+        await renderChip(item, response.message || await getString("designer_attach_failed", "local_coursegen"));
       }
     } catch (uploadError) {
       item.uploading = false;
-      await renderChip(item, uploadError.message || await get_string("designer_attach_failed", "local_coursegen"));
+      await renderChip(item, uploadError.message || await getString("designer_attach_failed", "local_coursegen"));
     }
     updateControls();
   };
@@ -800,7 +825,7 @@ const startDesignerChat = async (container, params) => {
   }
 
   // 3. Wire up the chat form for subsequent messages.
-  const submitCurrentMessage = async () => {
+  const submitCurrentMessage = async() => {
     const text = chatInput.value.trim();
     const ready = pending.filter((item) => item.id);
     if (sending || pending.some((item) => item.uploading) || (!text && !ready.length)) {
@@ -819,7 +844,7 @@ const startDesignerChat = async (container, params) => {
     const aiResponseEl = addMessage(messagesContainer, "", "ai");
 
     // "Thinking..." until the first token (streamResponse keeps it updated).
-    const thinkingLabel = await get_string("designer_thinking", "local_coursegen");
+    const thinkingLabel = await getString("designer_thinking", "local_coursegen");
     aiResponseEl.innerHTML = `
       <div class="d-flex align-items-center text-muted small" role="status">
         <span class="spinner-grow spinner-grow-sm me-2" aria-hidden="true"></span>${escapeHtml(thinkingLabel)}
@@ -862,13 +887,13 @@ const startDesignerChat = async (container, params) => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     await submitCurrentMessage();
   };
 
   chatForm.addEventListener("submit", handleSubmit);
-  sendBtn.addEventListener("click", async (e) => {
+  sendBtn.addEventListener("click", async(e) => {
     e.preventDefault();
     await submitCurrentMessage();
   });
@@ -893,7 +918,7 @@ const startDesignerChat = async (container, params) => {
  * @param {Object} status - Status from the stream
  * @param {Element} messagesContainer - Messages container
  */
-const handlePhaseTransition = async (container, params, status, messagesContainer) => {
+const handlePhaseTransition = async(container, params, status, messagesContainer) => {
   const phaseIndicator = container.querySelector("#designer-phase-indicator");
   const chatInputArea = container.querySelector("#designer-chat-input-area");
   const chatInput = container.querySelector("#designerChatInput");
@@ -905,13 +930,13 @@ const handlePhaseTransition = async (container, params, status, messagesContaine
     const phaseText = container.querySelector("#designer-phase-text");
     if (phaseText) {
       const phaseNames = {
-        analista_curricular: "Analizando el currículo...",
-        planificador_didactico: "Planificando unidades didácticas...",
-        disenador_actividades: "Diseñando actividades...",
-        guionista_rise: "Creando guiones RISE...",
-        generador_scorm: "Generando paquetes SCORM...",
-        calidad: "Revisando calidad...",
-        generador_docs: "Generando documentación...",
+        "analista_curricular": "Analizando el currículo...",
+        "planificador_didactico": "Planificando unidades didácticas...",
+        "disenador_actividades": "Diseñando actividades...",
+        "guionista_rise": "Creando guiones RISE...",
+        "generador_scorm": "Generando paquetes SCORM...",
+        "calidad": "Revisando calidad...",
+        "generador_docs": "Generando documentación...",
       };
       phaseText.textContent = phaseNames[status.siguiente_agente] || "Procesando...";
     }
@@ -925,9 +950,9 @@ const handlePhaseTransition = async (container, params, status, messagesContaine
 
     // Add completion message.
     const completionEl = addMessage(messagesContainer, "", "ai");
-    const completionMsg = await get_string("designer_design_complete", "local_coursegen");
-    const continueEditingLabel = await get_string("designer_continue_editing", "local_coursegen");
-    const acceptLabel = await get_string("accept_planning_create_course", "local_coursegen");
+    const completionMsg = await getString("designer_design_complete", "local_coursegen");
+    const continueEditingLabel = await getString("designer_continue_editing", "local_coursegen");
+    const acceptLabel = await getString("accept_planning_create_course", "local_coursegen");
     completionEl.innerHTML = `
       <div class="alert alert-success mb-2">
         <i class="fa fa-check-circle me-2"></i>${escapeHtml(completionMsg)}
@@ -962,9 +987,9 @@ const handlePhaseTransition = async (container, params, status, messagesContaine
     // Wire accept button.
     const acceptBtn = completionEl.querySelector('[data-action="designer-accept-plan"]');
     if (acceptBtn) {
-      acceptBtn.addEventListener("click", async () => {
+      acceptBtn.addEventListener("click", async() => {
         acceptBtn.disabled = true;
-        acceptBtn.textContent = await get_string("creating_course", "local_coursegen");
+        acceptBtn.textContent = await getString("creating_course", "local_coursegen");
 
         try {
           const execResponse = await planCourseExecute(params.courseid);
@@ -976,8 +1001,8 @@ const handlePhaseTransition = async (container, params, status, messagesContaine
             messagesContainer.appendChild(execDiv);
 
             const html = await Templates.render("local_coursegen/course_streaming_inline", {
-              title: await get_string("course_creating_title", "local_coursegen"),
-              subtitle: await get_string("course_creating_subtitle", "local_coursegen"),
+              title: await getString("course_creating_title", "local_coursegen"),
+              subtitle: await getString("course_creating_subtitle", "local_coursegen"),
             });
             execDiv.innerHTML = html;
 

@@ -124,7 +124,10 @@ class designer_files extends external_api {
             'files' => new external_multiple_structure(
                 new external_single_structure([
                     'name' => new external_value(PARAM_FILE, 'File name'),
-                    'kind' => new external_value(PARAM_ALPHA, 'design (editable document), version (Excel, one sheet per phase) or generated'),
+                    'kind' => new external_value(
+                        PARAM_ALPHA,
+                        'design (editable document), version (Excel, one sheet per phase) or generated'
+                    ),
                     'size' => new external_value(PARAM_INT, 'Size in bytes'),
                     'modified' => new external_value(PARAM_INT, 'Last modification timestamp'),
                     'url' => new external_value(PARAM_URL, 'Download URL'),

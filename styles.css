@@ -194,7 +194,7 @@ span.local_coursegen-sparkles-icon.white {
     line-height: 1.6;
 }
 
-.local_coursegen_markdown>*:last-child {
+.local_coursegen_markdown > *:last-child {
     margin-bottom: 0;
 }
 
@@ -558,13 +558,17 @@ span.local_coursegen-sparkles-icon.white {
 
 .template-card.selected,
 .template-card.border-primary {
-    border-color: #0d6efd !important;
     background-color: rgba(13, 110, 253, 0.05);
 }
 
-.template-card:focus {
+.template-card:focus-within {
     outline: 2px solid #0d6efd;
     outline-offset: 2px;
+}
+
+.template-card:not(.selected) .template-checked,
+.template-card.selected .template-unchecked {
+    display: none;
 }
 
 .template-card .template-icon {

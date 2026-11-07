@@ -29,7 +29,7 @@ $plugin->release = '1.4.2';
 $plugin->version = 2026101704; // YYYYMMDDXX format.
 $plugin->requires = 2024100700; // Moodle 4.5.
 $plugin->maturity = MATURITY_STABLE;
-$plugin->supported = [405, 501];
+$plugin->supported = [405, 503];
 $plugin->dependencies = [
     'aiprovider_birtai' => 2026042301,
 ];

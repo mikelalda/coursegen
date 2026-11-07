@@ -24,7 +24,7 @@
 import Modal from "core/modal";
 import Templates from "core/templates";
 import Notification from "core/notification";
-import { get_string } from "core/str";
+import {get_string as getString} from "core/str";
 import {
   startStreaming,
   startExecutionStreaming,
@@ -80,7 +80,7 @@ const setupScrollDetection = (scrollContainer) => {
     }
   };
 
-  scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+  scrollContainer.addEventListener("scroll", handleScroll, {passive: true});
 };
 
 /**
@@ -89,7 +89,7 @@ const setupScrollDetection = (scrollContainer) => {
  * @param {string} params.streamingurl - The complete URL for course streaming (including session)
  * @returns {Promise}
  */
-export const init = async (params = {}) => {
+export const init = async(params = {}) => {
   try {
     // Close existing modal if open
     if (currentModal) {
@@ -99,7 +99,7 @@ export const init = async (params = {}) => {
 
     // Get modal title and body content
     const [title, bodyHTML, footerHTML] = await Promise.all([
-      get_string("addcourseai_modaltitle", "local_coursegen"),
+      getString("addcourseai_modaltitle", "local_coursegen"),
       Templates.render("local_coursegen/add_course_ai_modal", {}),
       Templates.render("local_coursegen/add_course_ai_modal_footer", {}),
     ]);
@@ -152,7 +152,7 @@ export const init = async (params = {}) => {
  * @param {Element} container - The modal container element
  * @param {Object} params - The parameters including streaming URL
  */
-const initializeChatInterface = async (container, params) => {
+const initializeChatInterface = async(container, params) => {
   // Find the streaming button and add event listener
   try {
     // Ensure chat interface is hidden when (re)starting streaming
@@ -174,7 +174,7 @@ const initializeChatInterface = async (container, params) => {
  * @param {Element} container - The modal container element
  * @param {Object} params - The parameters including streaming URL and course ID
  */
-const resumeExecutionInterface = async (container, params) => {
+const resumeExecutionInterface = async(container, params) => {
   try {
     const planningPhase = container.querySelector("#planning-phase-section");
     const planningSummary = container.querySelector(
@@ -205,8 +205,8 @@ const resumeExecutionInterface = async (container, params) => {
     executionContainer.innerHTML = "";
 
     const html = await Templates.render("local_coursegen/course_streaming_inline", {
-      title: await get_string("course_creating_title", "local_coursegen"),
-      subtitle: await get_string(
+      title: await getString("course_creating_title", "local_coursegen"),
+      subtitle: await getString(
         "course_creating_subtitle",
         "local_coursegen"
       ),
@@ -375,10 +375,10 @@ const setupPlanningButtons = (container, params) => {
   );
 
   if (acceptBtn) {
-    acceptBtn.addEventListener("click", async () => {
+    acceptBtn.addEventListener("click", async() => {
       // Disable button to prevent double clicks
       acceptBtn.disabled = true;
-      acceptBtn.textContent = await get_string(
+      acceptBtn.textContent = await getString(
         "creating_course",
         "local_coursegen"
       );
@@ -389,7 +389,7 @@ const setupPlanningButtons = (container, params) => {
 
         if (!courseId) {
           throw new Error(
-            await get_string("error_no_course_id", "local_coursegen")
+            await getString("error_no_course_id", "local_coursegen")
           );
         }
 
@@ -399,7 +399,7 @@ const setupPlanningButtons = (container, params) => {
         if (!response.success) {
           throw new Error(
             response.message ||
-              (await get_string("error_executing_plan", "local_coursegen"))
+              (await getString("error_executing_plan", "local_coursegen"))
           );
         }
 
@@ -425,11 +425,11 @@ const setupPlanningButtons = (container, params) => {
           const html = await Templates.render(
             "local_coursegen/course_streaming_inline",
             {
-              title: await get_string(
+              title: await getString(
                 "course_creating_title",
                 "local_coursegen"
               ),
-              subtitle: await get_string(
+              subtitle: await getString(
                 "course_creating_subtitle",
                 "local_coursegen"
               ),
@@ -447,14 +447,14 @@ const setupPlanningButtons = (container, params) => {
         }
 
         // Show success notification after execution completes
-        const message = await get_string("addcourseai_done", "local_coursegen");
+        const message = await getString("addcourseai_done", "local_coursegen");
         Notification.addNotification({
           message: message,
           type: "success",
         });
       } catch (error) {
         acceptBtn.disabled = false;
-        acceptBtn.textContent = await get_string(
+        acceptBtn.textContent = await getString(
           "accept_planning_create_course",
           "local_coursegen"
         );
@@ -489,7 +489,7 @@ const setupPlanningButtons = (container, params) => {
   }
 
   if (chatForm) {
-    chatForm.addEventListener("submit", async (e) => {
+    chatForm.addEventListener("submit", async(e) => {
       e.preventDefault();
 
       const message = chatInput.value.trim();
@@ -526,7 +526,7 @@ const setupPlanningButtons = (container, params) => {
           streamingContainer.appendChild(errorResponse);
           const errorMsg =
             response.message ||
-            (await get_string("error_processing_request", "local_coursegen"));
+            (await getString("error_processing_request", "local_coursegen"));
           await typeWriter(errorResponse, errorMsg, 15);
           return;
         }
@@ -542,7 +542,7 @@ const setupPlanningButtons = (container, params) => {
           // Add a separator to distinguish the correction from previous content
           const separator = document.createElement("div");
           separator.className = "mt-4 mb-3 border-top pt-3";
-          const correctionText = await get_string(
+          const correctionText = await getString(
             "adjust_planning_title",
             "local_coursegen"
           );
@@ -564,7 +564,7 @@ const setupPlanningButtons = (container, params) => {
         const errorResponse = document.createElement("div");
         errorResponse.className = "mb-3 text-danger";
         streamingContainer.appendChild(errorResponse);
-        const errorMsg = await get_string(
+        const errorMsg = await getString(
           "error_sending_message",
           "local_coursegen"
         );

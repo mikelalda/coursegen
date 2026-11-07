@@ -51,8 +51,12 @@ class designer_start extends external_api {
         return new external_function_parameters([
             'courseid' => new external_value(PARAM_INT, 'Course ID'),
             'newsession' => new external_value(PARAM_BOOL, 'Start a new conversation instead of resuming', VALUE_DEFAULT, false),
-            'lang' => new external_value(PARAM_ALPHA, 'Change the AI language of the course (es, eu, en); empty keeps it',
-                VALUE_DEFAULT, ''),
+            'lang' => new external_value(
+                PARAM_ALPHA,
+                'Change the AI language of the course (es, eu, en); empty keeps it',
+                VALUE_DEFAULT,
+                ''
+            ),
         ]);
     }
 

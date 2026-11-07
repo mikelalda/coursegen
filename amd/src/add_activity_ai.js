@@ -114,7 +114,7 @@ define([
       }
     };
 
-    scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+    scrollContainer.addEventListener("scroll", handleScroll, {passive: true});
   };
 
   const init = () => {
@@ -132,7 +132,7 @@ define([
     CustomEvents.define(document, events);
 
     events.forEach((event) => {
-      document.addEventListener(event, async (e) => {
+      document.addEventListener(event, async(e) => {
         const link = e.target.closest(LINK_SELECTOR);
         if (!link) {
           return;
@@ -145,7 +145,7 @@ define([
   };
 
   const readDataset = (el) => {
-    const { sectionnum, beforemod, courseid, courselang } = el.dataset;
+    const {sectionnum, beforemod, courseid, courselang} = el.dataset;
     return {
       sectionnum: Number(sectionnum),
       beforemod: beforemod ? Number(beforemod) : null,
@@ -154,7 +154,7 @@ define([
     };
   };
 
-  const openChatModal = async (payload) => {
+  const openChatModal = async(payload) => {
     try {
       // If there is already an open modal, close it first
       if (modal) {
@@ -230,7 +230,7 @@ define([
     const sendBtn = form.querySelector(".local_coursegen_ai_send");
 
     // Send on submit.
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", async(e) => {
       e.preventDefault();
       const prompt = textarea.value.trim();
       if (!prompt) {
@@ -260,21 +260,15 @@ define([
 
       textarea.value = "";
 
-      // Disable form elements
-      sendBtn.disabled = true;
-      textarea.disabled = true;
-      if (activityTypeSelector) {
-        activityTypeSelector.disabled = true;
-      }
-      if (languageSelector) {
-        languageSelector.disabled = true;
-      }
-      const radioButtons = footerContainer.querySelectorAll(
-        'input[name="generate_images"]'
-      );
-      radioButtons.forEach((rb) => {
-        rb.disabled = true;
-      });
+      // Disable the form while the activity is being created.
+      const controls = [
+        sendBtn,
+        textarea,
+        activityTypeSelector,
+        languageSelector,
+        ...footerContainer.querySelectorAll('input[name="generate_images"]'),
+      ].filter(Boolean);
+      setDisabled(controls, true);
       setLoading(sendBtn, true);
 
       try {
@@ -291,34 +285,7 @@ define([
           throw new Error(response.message);
         }
 
-        // Show and use the integrated streaming section
-        if (streamingSection) {
-          streamingSection.style.display = "block";
-
-          // Update progress indicator text for activity creation
-          const progressIndicator = streamingSection.querySelector(
-            "[data-region='local_coursegen/course_streaming/progress']"
-          );
-          if (progressIndicator) {
-            const titleElement = progressIndicator.querySelector("h6, h5");
-            const subtitleElement = progressIndicator.querySelector("small");
-            if (titleElement) {
-              const titleText = await Str.get_string(
-                "module_creation_title",
-                "local_coursegen"
-              );
-              titleElement.textContent = titleText;
-            }
-            if (subtitleElement) {
-              const subtitleText = await Str.get_string(
-                "module_creation_subtitle",
-                "local_coursegen"
-              );
-              subtitleElement.textContent = subtitleText;
-            }
-            progressIndicator.style.display = "block";
-          }
-        }
+        await showModuleProgress(streamingSection);
 
         // Start module streaming using the integrated container
         await moduleStreaming.startModuleStreaming(
@@ -332,49 +299,9 @@ define([
           }
         );
       } catch (err) {
-        // Show error message in streaming section
-        if (streamingSection) {
-          streamingSection.style.display = "block";
-          const eventList = streamingSection.querySelector(
-            "[data-region='local_coursegen/course_streaming']"
-          );
-          if (eventList) {
-            const errorDiv = document.createElement("div");
-            errorDiv.className = "alert alert-danger mb-2";
-            const errorMsg =
-              err.message ||
-              (await Str.get_string("addactivityai_error", "local_coursegen"));
-            const errorLabel = await Str.get_string(
-              "error_label",
-              "local_coursegen"
-            );
-            errorDiv.innerHTML = `<small>❌ ${errorLabel}: ${errorMsg}</small>`;
-            eventList.appendChild(errorDiv);
-
-            // Auto-scroll to show error message - only if user hasn't scrolled
-            if (!userHasScrolled) {
-              const modalBody = document.querySelector(".modal-body");
-              if (modalBody) {
-                modalBody.scrollTop = modalBody.scrollHeight;
-              } else {
-                eventList.scrollTop = eventList.scrollHeight;
-              }
-            }
-          }
-        }
+        await showStreamingError(streamingSection, err);
       } finally {
-        // Re-enable form elements
-        radioButtons.forEach((rb) => {
-          rb.disabled = false;
-        });
-        textarea.disabled = false;
-        sendBtn.disabled = false;
-        if (activityTypeSelector) {
-          activityTypeSelector.disabled = false;
-        }
-        if (languageSelector) {
-          languageSelector.disabled = false;
-        }
+        setDisabled(controls, false);
         setLoading(sendBtn, false);
       }
     });
@@ -416,10 +343,75 @@ define([
     }
   };
 
+  /**
+   * Enable or disable a set of form controls.
+   *
+   * @param {HTMLElement[]} controls - The controls
+   * @param {boolean} disabled - Whether to disable them
+   */
+  const setDisabled = (controls, disabled) => {
+    controls.forEach((control) => {
+      control.disabled = disabled;
+    });
+  };
+
+  /**
+   * Show the streaming section with the titles for creating an activity.
+   *
+   * @param {HTMLElement|null} streamingSection - Section that shows the progress
+   */
+  const showModuleProgress = async(streamingSection) => {
+    if (!streamingSection) {
+      return;
+    }
+    streamingSection.style.display = "block";
+    const progressIndicator = streamingSection.querySelector(
+      "[data-region='local_coursegen/course_streaming/progress']"
+    );
+    if (!progressIndicator) {
+      return;
+    }
+    const titleElement = progressIndicator.querySelector("h6, h5");
+    if (titleElement) {
+      titleElement.textContent = await Str.get_string("module_creation_title", "local_coursegen");
+    }
+    const subtitleElement = progressIndicator.querySelector("small");
+    if (subtitleElement) {
+      subtitleElement.textContent = await Str.get_string("module_creation_subtitle", "local_coursegen");
+    }
+    progressIndicator.style.display = "block";
+  };
+
+  /**
+   * Show an error in the streaming section.
+   *
+   * @param {HTMLElement|null} streamingSection - Section that shows the progress
+   * @param {Error} err - The error
+   */
+  const showStreamingError = async(streamingSection, err) => {
+    if (!streamingSection) {
+      return;
+    }
+    streamingSection.style.display = "block";
+    const eventList = streamingSection.querySelector("[data-region='local_coursegen/course_streaming']");
+    if (!eventList) {
+      return;
+    }
+    const errorMsg = err.message || (await Str.get_string("addactivityai_error", "local_coursegen"));
+    const errorLabel = await Str.get_string("error_label", "local_coursegen");
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "alert alert-danger mb-2";
+    const text = document.createElement("small");
+    text.textContent = `❌ ${errorLabel}: ${errorMsg}`;
+    errorDiv.appendChild(text);
+    eventList.appendChild(errorDiv);
+    scrollToBottom(eventList);
+  };
+
   const setLoading = (btn, isLoading) => {
     btn.disabled = isLoading;
     btn.style.opacity = isLoading ? 0.7 : 1;
   };
 
-  return { init, openChatModal };
+  return {init, openChatModal};
 });

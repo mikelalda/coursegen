@@ -33,7 +33,7 @@ export const init = () => {
 /**
  * Add the AI button before the submit button
  */
-const addAIButton = async () => {
+const addAIButton = async() => {
   // Find the submit form element
   const submitElement = document.querySelector(".mb-3.fitem.form-submit");
   let targetElement = submitElement;
@@ -71,7 +71,7 @@ const addAIButton = async () => {
  * Handle the AI button click event
  * @param {Event} e - The click event
  */
-const handleAIButtonClick = async (e) => {
+const handleAIButtonClick = async(e) => {
   e.preventDefault();
   const btn = e.currentTarget;
   if (btn) {
@@ -88,7 +88,7 @@ const handleAIButtonClick = async (e) => {
  * Opens the designer chat modal directly without submitting the form.
  * @param {Event} e - The click event
  */
-const handleDesignerButtonClick = async (e) => {
+const handleDesignerButtonClick = async(e) => {
   e.preventDefault();
   const btn = e.currentTarget;
   if (btn) {
@@ -110,8 +110,8 @@ const handleDesignerButtonClick = async (e) => {
 
   // Course exists — open the designer chat directly.
   try {
-    const { init } = await import("local_coursegen/designer_chat");
-    await init({ courseid });
+    const {init} = await import("local_coursegen/designer_chat");
+    await init({courseid});
   } catch (error) {
     if (btn) {
       btn.removeAttribute("disabled");
@@ -126,14 +126,14 @@ const handleDesignerButtonClick = async (e) => {
  * Insert the AI button before the target element
  * @param {Element} targetElement - The element before which to insert the button
  */
-const insertAIButton = async (targetElement) => {
+const insertAIButton = async(targetElement) => {
   // Check if button already exists to avoid duplicates
   if (document.querySelector('[data-action="local_coursegen/add_ai_course"]')) {
     return;
   }
 
   // Render the template (no context needed as template is self-contained)
-  const { html } = await Templates.renderForPromise(
+  const {html} = await Templates.renderForPromise(
     "local_coursegen/add_ai_course_button",
     {}
   );

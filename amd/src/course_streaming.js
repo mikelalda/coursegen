@@ -21,8 +21,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import { createCourse } from "local_coursegen/repository/chatbot";
-import { get_string } from "core/str";
+import {createCourse} from "local_coursegen/repository/chatbot";
+import {get_string as getString} from "core/str";
 
 // Global state for scroll behavior
 let userHasScrolled = false;
@@ -277,7 +277,7 @@ const setupScrollDetection = (scrollContainer) => {
     }
   };
 
-  scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+  scrollContainer.addEventListener("scroll", handleScroll, {passive: true});
 };
 
 /**
@@ -287,7 +287,7 @@ const setupScrollDetection = (scrollContainer) => {
  * @param {boolean} isCorrection - Whether this is a plan correction (don't clear existing content)
  * @returns {Promise} Promise that resolves when streaming is complete
  */
-export const startStreaming = async (
+export const startStreaming = async(
   streamingUrl,
   container,
   isCorrection = false
@@ -407,7 +407,9 @@ const parseBest = (raw) => {
   const s = String(raw).trim();
   try {
     return JSON.parse(s);
-  } catch (_) {}
+  } catch (_) {
+    // Not JSON: try it as a Python dict below.
+  }
   try {
     // Best-effort convert Python dict repr to JSON
     let t = s
@@ -457,7 +459,7 @@ const addStatus = (message, type, container) => {
  * @param {number} courseid - The course ID for creating the course
  * @returns {Promise} Promise that resolves when streaming is complete
  */
-export const startExecutionStreaming = async (
+export const startExecutionStreaming = async(
   streamingUrl,
   container,
   courseid
@@ -492,12 +494,12 @@ export const startExecutionStreaming = async (
 
   const es = new EventSource(streamingUrl);
 
-  const onActStart = async (e) => {
+  const onActStart = async(e) => {
     const obj = parseBest(e.data) || {};
     const idx = obj.index ?? "?";
     const title = obj.title || "";
     const sec = obj.section_index ?? "?";
-    const msg = await get_string(
+    const msg = await getString(
       "execution_activity_start",
       "local_coursegen",
       {
@@ -509,12 +511,12 @@ export const startExecutionStreaming = async (
     addStatus(msg, "info", eventList);
   };
 
-  const onActDone = async (e) => {
+  const onActDone = async(e) => {
     const obj = parseBest(e.data) || {};
     const done = obj.done ?? 0;
     const total = obj.total ?? 0;
     const percent = obj.percent ?? 0;
-    const msg = await get_string("execution_activity_done", "local_coursegen", {
+    const msg = await getString("execution_activity_done", "local_coursegen", {
       done,
       total,
       percent,
@@ -522,12 +524,12 @@ export const startExecutionStreaming = async (
     addStatus(msg, "ok", eventList);
   };
 
-  const onProgress = async (e) => {
+  const onProgress = async(e) => {
     const obj = parseBest(e.data) || {};
     const done = obj.done ?? 0;
     const total = obj.total ?? 0;
     const percent = obj.percent ?? 0;
-    const msg = await get_string("execution_progress", "local_coursegen", {
+    const msg = await getString("execution_progress", "local_coursegen", {
       done,
       total,
       percent,
@@ -535,12 +537,12 @@ export const startExecutionStreaming = async (
     addStatus(msg, "info", eventList);
   };
 
-  const onExecError = async () => {
-    const msg = await get_string("execution_error_activity", "local_coursegen");
+  const onExecError = async() => {
+    const msg = await getString("execution_error_activity", "local_coursegen");
     addStatus(msg, "error", eventList);
   };
 
-  const onComplete = async () => {
+  const onComplete = async() => {
     // Close the EventSource connection first
     es.close();
     progressIcon.innerHTML = `
@@ -552,10 +554,10 @@ export const startExecutionStreaming = async (
 
     // Call createCourse to apply the AI-generated content
     try {
-      const result = await createCourse({ courseid });
+      const result = await createCourse({courseid});
 
       if (result.success) {
-        const okmsg = await get_string(
+        const okmsg = await getString(
           "course_created_success_simple",
           "local_coursegen"
         );
@@ -565,7 +567,7 @@ export const startExecutionStreaming = async (
           window.location.reload();
         }, 500);
       } else {
-        const errmsg = await get_string(
+        const errmsg = await getString(
           "error_creating_course",
           "local_coursegen",
           result.message || ""
@@ -573,7 +575,7 @@ export const startExecutionStreaming = async (
         addStatus(errmsg, "error", eventList);
       }
     } catch (error) {
-      const errmsg = await get_string(
+      const errmsg = await getString(
         "error_creating_course",
         "local_coursegen",
         error.message || ""

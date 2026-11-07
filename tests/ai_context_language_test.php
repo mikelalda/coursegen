@@ -16,6 +16,7 @@
 
 namespace local_coursegen;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_coursegen\ai_context::class)]
 /**
  * Tests for the AI content language resolution.
  *

@@ -25,6 +25,7 @@ use core_privacy\tests\provider_testcase;
 use local_coursegen\privacy\provider;
 use stdClass;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_coursegen\privacy\provider::class)]
 /**
  * Tests for Course Creator AI
  *
@@ -32,6 +33,7 @@ use stdClass;
  * @category   test
  * @copyright  2025 Wilber Narvaez <https://birtai.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \local_coursegen\privacy\provider
  */
 final class privacy_provider_test extends provider_testcase {
     /**
@@ -45,8 +47,6 @@ final class privacy_provider_test extends provider_testcase {
 
     /**
      * Check that a user context is returned if there is any user data for this user.
-     *
-     * @covers \local_coursegen\privacy\provider::get_contexts_for_userid
      */
     public function test_get_contexts_for_userid(): void {
         $user = $this->getDataGenerator()->create_user();
@@ -64,8 +64,6 @@ final class privacy_provider_test extends provider_testcase {
 
     /**
      * Test that only users with a user context are fetched.
-     *
-     * @covers \local_coursegen\privacy\provider::get_users_in_context
      */
     public function test_get_users_in_context(): void {
         $component = 'local_coursegen';
@@ -93,8 +91,6 @@ final class privacy_provider_test extends provider_testcase {
 
     /**
      * Test that user data is exported correctly.
-     *
-     * @covers \local_coursegen\privacy\provider::export_user_data
      */
     public function test_export_user_data(): void {
         $user = $this->getDataGenerator()->create_user();
@@ -121,8 +117,6 @@ final class privacy_provider_test extends provider_testcase {
 
     /**
      * Test deleting all user data for a specific context.
-     *
-     * @covers \local_coursegen\privacy\provider::delete_data_for_all_users_in_context
      */
     public function test_delete_data_for_all_users_in_context(): void {
         global $DB;
@@ -163,8 +157,6 @@ final class privacy_provider_test extends provider_testcase {
 
     /**
      * Test deleting user data via approved context list.
-     *
-     * @covers \local_coursegen\privacy\provider::delete_data_for_user
      */
     public function test_delete_data_for_user(): void {
         global $DB;
@@ -206,8 +198,6 @@ final class privacy_provider_test extends provider_testcase {
 
     /**
      * Test that data for users in approved userlist is deleted.
-     *
-     * @covers \local_coursegen\privacy\provider::delete_data_for_users
      */
     public function test_delete_data_for_users(): void {
         $component = 'local_coursegen';
